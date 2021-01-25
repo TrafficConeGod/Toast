@@ -11,11 +11,15 @@ std::string t_cmp::compile(std::string source) {
 t_cmp::Lexer::Lexer(std::string source) {
     this->source = source;
     for (this->position = 0; this->position < source.length(); this->position++) {
-        handleChar();
+        handle_char();
+    }
+    for (int i = 0; i < this->tokens.size(); i++) {
+        Token* token = this->tokens[i];
+        std::cout << token->get_literal() << " " << token->get_type() << std::endl;
     }
 }
 
-void t_cmp::Lexer::handleChar() {
+void t_cmp::Lexer::handle_char() {
     char ch = this->source[this->position];
     std::string literal(1, ch);
     TokenType type = ILLEGAL;
@@ -60,6 +64,8 @@ void t_cmp::Lexer::handleChar() {
                 literal = this->get_source_until_non_letter();
                 if (literal == "int" || literal == "bool") {
                     type = TYPE;
+                } else if (literal == "return") {
+                    type = RET;
                 } else {
                     type = IDENT;
                 }
@@ -72,8 +78,8 @@ void t_cmp::Lexer::handleChar() {
                 type = INT;
             }
     }
-    std::cout << literal << std::endl;
-    std::cout << type << std::endl;
+    Token* token = new Token(type, literal);
+    tokens.push_back(token);
 }
 
 std::string t_cmp::Lexer::get_source_until_non_letter() {
@@ -102,4 +108,18 @@ std::string t_cmp::Lexer::get_source_until_non_digit() {
     }
     stream >> output;
     return output;
+}
+
+
+t_cmp::Token::Token(TokenType type, std::string literal) {
+    this->type = type;
+    this->literal = literal;
+}
+
+t_cmp::TokenType t_cmp::Token::get_type() {
+    return this->type;
+}
+
+std::string t_cmp::Token::get_literal() {
+    return this->literal;
 }
