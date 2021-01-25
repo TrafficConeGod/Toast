@@ -1,10 +1,16 @@
 #include "t_cmp.h"
 #include <iostream>
 #include <string>
+#include <vector>
 #include <sstream>
 
 std::string t_cmp::compile(std::string source) {
     Lexer* lexer = new Lexer(source);
+    std::vector<Token*> tokens = lexer->get_tokens();
+    for (int i = 0; i < tokens.size(); i++) {
+        Token* token = tokens[i];
+        std::cout << token->get_literal() << " " << token->get_type() << std::endl;
+    }
     return "";
 }
 
@@ -12,10 +18,6 @@ t_cmp::Lexer::Lexer(std::string source) {
     this->source = source;
     for (this->position = 0; this->position < source.length(); this->position++) {
         handle_char();
-    }
-    for (int i = 0; i < this->tokens.size(); i++) {
-        Token* token = this->tokens[i];
-        std::cout << token->get_literal() << " " << token->get_type() << std::endl;
     }
 }
 
@@ -108,6 +110,10 @@ std::string t_cmp::Lexer::get_source_until_non_digit() {
     }
     stream >> output;
     return output;
+}
+
+std::vector<t_cmp::Token*> t_cmp::Lexer::get_tokens() {
+    return this->tokens;
 }
 
 

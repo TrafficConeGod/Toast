@@ -42,5 +42,6 @@ namespace t_cmp {
             std::vector<Token*> tokens;
         public:
             Lexer(std::string source);
+            std::vector<Token*> get_tokens();
     };
 }
