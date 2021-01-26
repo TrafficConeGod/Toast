@@ -5,5 +5,5 @@ toast::Exception::Exception(const char* msg) {
 }
 
 const char* toast::Exception::what() const throw() {
-    return this->msg;
+    return msg;
 }
