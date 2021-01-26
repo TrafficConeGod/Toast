@@ -1,0 +1,13 @@
+some_function(10, 40)
+
+//
+
+IMPORT some_function_file ; 0
+VAR FUNC VOID ; 1
+ENTER_SCOPE
+    VAR INT ; 2
+    SET 2 10
+    VAR INT ; 3
+    SET 3 40
+    CALL 0 -1 2 3
+EXIT_SCOPE

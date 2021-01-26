@@ -4,9 +4,23 @@
 #include "toast.h"
 
 namespace t_cmp {
-    enum ValueType {
+    enum StateType {
         INT,
-        BOOL
+        BOOL,
+        FUNC
+    };
+
+    class StateTypeHolder {
+        private:
+            StateType main_type;
+            StateType return_type;
+            std::vector<StateTypeHolder> func_args;
+        public:
+            StateTypeHolder(StateType main_type);
+            void func_init(StateType return_type, std::vector<StateTypeHolder> func_args);
+            StateType get_main_type();
+            StateType get_return_type();
+            std::vector<StateTypeHolder> get_func_args();
     };
 
     enum TokenType {
@@ -24,9 +38,8 @@ namespace t_cmp {
         RIGHT_PAREN,
         LEFT_BRACE,
         RIGHT_BRACE,
-        FUNC,
         TYPE,
-        RET
+        RETURN
     };
 
     class Token {
@@ -54,32 +67,52 @@ namespace t_cmp {
 
     enum InstructionType {
         NONE,
-        ENTER_SCOPE,
-        EXIT_SCOPE,
-        VAR_DECL,
-        SET_VAR,
-        PUSH_STATE,
-        POP_STATE
+        PUSH,
+        POP,
+        SET,
+        SET_TO,
+        RET,
+        EXIT
     };
 
     class Instruction {
         private:
             InstructionType type;
-            int* args;
+            std::vector<int> args;
         public:
-            Instruction(InstructionType type, int* args);
+            Instruction(InstructionType type, std::vector<int> args);
             InstructionType get_type();
-            int* get_args();
+            std::vector<int> get_args();
     };
 
-    class Var {
+    class State {
         private:
-            ValueType type;
-            long index;
+            StateTypeHolder* type;
         public:
-            Var(ValueType type, long index);
-            ValueType get_type();
-            long get_index();
+            State(StateTypeHolder* type);
+            StateTypeHolder* get_type();
+    };
+
+    enum ScopeType {
+        GLOBAL,
+        FUNCTION,
+        BLOCK
+    };
+
+    class Scope {
+        private:
+            ScopeType type;
+            std::vector<State*> state_stack;
+            std::map<std::string, State*> var_map;
+        public:
+            Scope(ScopeType type);
+            void push(State* state);
+            std::vector<State*> get_state_stack();
+            void add_var(std::string name, State* state);
+            bool has_var(std::string name);
+            int get_var_offset(std::string name);
+            State* get_var(std::string name);
+            ScopeType get_type();
     };
 
     class Builder {
@@ -87,9 +120,11 @@ namespace t_cmp {
             int position = 0;
             std::vector<Token*> tokens;
             std::vector<Instruction*> instructions;
-            std::map<std::string, Var*> vars;
-            long var_index = 0;
+            std::vector<Scope*> scope_stack;
             void handle_token();
+            bool has_var(std::string name);
+            int get_var_offset(std::string name);
+            State* get_var(std::string name);
         public:
             Builder(std::vector<Token*> tokens);
             std::vector<Instruction*> get_instructions();
@@ -98,5 +133,5 @@ namespace t_cmp {
 
     std::vector<Instruction*> generate_instruction_list(std::string source);
     std::string make_human_readable(std::vector<Instruction*>);
-    int parse_val(std::string literal, ValueType type);
+    int parse_val(std::string literal, StateType type);
 }
