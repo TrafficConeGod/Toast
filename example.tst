@@ -1,10 +1,7 @@
-int z = 10
-int x = 10
-int aa = 1
 {
-    int b
-    int a = z
+    int x = 5
     {
-        z = 5
+        int b = 10
     }
+    x = b
 }

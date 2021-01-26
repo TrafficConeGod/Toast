@@ -264,6 +264,7 @@ void t_cmp::Builder::handle_token() {
                 Instruction* pop_instruction = new Instruction(POP, { });
                 this->instructions.push_back(pop_instruction);
             }
+            scope_stack.pop_back();
         } break;
         default: {
 
