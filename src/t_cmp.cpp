@@ -9,15 +9,15 @@ std::vector<t_cmp::Instruction*> t_cmp::generate_instruction_list(std::string so
         Lexer* lexer = new Lexer(source);
         std::vector<Token*> tokens = lexer->get_tokens();
         Builder* builder = new Builder(tokens);
-        for (int i = 0; i < builder->get_instructions().size(); i++) {
-            Instruction* instruction = builder->get_instructions()[i];
-            std::cout << instruction->get_type();
-            for (int j = 0; j < instruction->get_args().size(); j++) {
-                int arg = instruction->get_args()[j];
-                std::cout << " " << arg;
-            }
-            std::cout << std::endl;
-        }
+        // for (int i = 0; i < builder->get_instructions().size(); i++) {
+        //     Instruction* instruction = builder->get_instructions()[i];
+        //     std::cout << instruction->get_type();
+        //     for (int j = 0; j < instruction->get_args().size(); j++) {
+        //         int arg = instruction->get_args()[j];
+        //         std::cout << " " << arg;
+        //     }
+        //     std::cout << std::endl;
+        // }
         return builder->get_instructions();
     } catch (toast::Exception e) {
         std::cout << std::endl << e.what() << std::endl;
@@ -25,8 +25,31 @@ std::vector<t_cmp::Instruction*> t_cmp::generate_instruction_list(std::string so
     }
 }
 
-std::string t_cmp::make_human_readable(std::vector<t_cmp::Instruction*>) {
-    return "";
+std::string t_cmp::make_human_readable(std::vector<t_cmp::Instruction*> instructions) {
+    std::stringstream stream;
+    for (int i = 0; i < instructions.size(); i++) {
+        Instruction* instruction = instructions[i];
+        switch (instruction->get_type()) {
+            case PUSH:
+                stream << "PUSH";
+                break;
+            case POP:
+                stream << "POP";
+                break;
+            case SET:
+                stream << "SET";
+                break;
+            case SET_TO:
+                stream << "MOVE";
+                break;
+        }
+        for (int j = 0; j < instruction->get_args().size(); j++) {
+            int arg = instruction->get_args()[j];
+            stream << " " << arg;
+        }
+        stream << std::endl;
+    }
+    return stream.str();
 }
 
 t_cmp::Lexer::Lexer(std::string source) {
