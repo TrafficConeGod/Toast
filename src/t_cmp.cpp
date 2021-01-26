@@ -206,15 +206,15 @@ void t_cmp::Builder::handle_token() {
                 throw toast::Exception("Var has already been declared");
             }
             std::string literal = token->get_literal();
-            StateType type_enum;
+            toast::StateType type_enum;
             if (literal == "int") {
-                type_enum = INT;
+                type_enum = toast::INT;
             } else if (literal == "bool") {
-                type_enum = BOOL;
+                type_enum = toast::BOOL;
             } else {
                 throw toast::Exception("Invalid type");
             }
-            StateTypeHolder* type_holder = new StateTypeHolder(type_enum);
+            toast::StateTypeHolder* type_holder = new toast::StateTypeHolder(type_enum);
             
             Instruction* push_instruction = new Instruction(PUSH, { type_enum });
             instructions.push_back(push_instruction);
@@ -403,17 +403,17 @@ std::vector<t_cmp::Instruction*> t_cmp::Builder::get_instructions() {
     return instructions;
 }
 
-t_cmp::State::State(StateTypeHolder* type) {
+t_cmp::State::State(toast::StateTypeHolder* type) {
     this->type = type;
 }
 
-t_cmp::StateTypeHolder* t_cmp::State::get_type() {
+toast::StateTypeHolder* t_cmp::State::get_type() {
     return type;
 }
 
-int t_cmp::parse_val(std::string literal, StateType type) {
+int t_cmp::parse_val(std::string literal, toast::StateType type) {
     switch (type) {
-        case INT: {
+        case toast::INT: {
             std::stringstream stream(literal);
             int val = 0;
             stream >> val;
@@ -422,7 +422,7 @@ int t_cmp::parse_val(std::string literal, StateType type) {
             }
             return val;
         } break;
-        case BOOL: {
+        case toast::BOOL: {
             if (literal != "true" && literal != "false") {
                 throw toast::Exception("Not a bool");
             }
@@ -433,27 +433,6 @@ int t_cmp::parse_val(std::string literal, StateType type) {
     }
 }
 
-
-t_cmp::StateTypeHolder::StateTypeHolder(StateType main_type) {
-    this->main_type = main_type;
-}
-
-void t_cmp::StateTypeHolder::func_init(StateType return_type, std::vector<StateTypeHolder> func_args) {
-    this->return_type = return_type;
-    this->func_args = func_args;
-}
-
-t_cmp::StateType t_cmp::StateTypeHolder::get_main_type() {
-    return main_type;
-}
-
-t_cmp::StateType t_cmp::StateTypeHolder::get_return_type() {
-    return return_type;
-}
-
-std::vector<t_cmp::StateTypeHolder> t_cmp::StateTypeHolder::get_func_args() {
-    return func_args;
-}
 
 t_cmp::Instruction::Instruction(InstructionType type, std::vector<int> args) {
     this->type = type;
@@ -536,8 +515,4 @@ int t_cmp::Builder::get_var_offset(std::string name) {
         offset += scope->get_state_stack().size();
     }
     throw toast::Exception("No var with name through Builder");
-}
-
-bool t_cmp::StateTypeHolder::equals(StateTypeHolder* type) {
-    return main_type == type->get_main_type();
 }

@@ -4,25 +4,6 @@
 #include "toast.h"
 
 namespace t_cmp {
-    enum StateType {
-        INT,
-        BOOL,
-        FUNC
-    };
-
-    class StateTypeHolder {
-        private:
-            StateType main_type;
-            StateType return_type;
-            std::vector<StateTypeHolder> func_args;
-        public:
-            StateTypeHolder(StateType main_type);
-            void func_init(StateType return_type, std::vector<StateTypeHolder> func_args);
-            StateType get_main_type();
-            StateType get_return_type();
-            std::vector<StateTypeHolder> get_func_args();
-            bool equals(StateTypeHolder* type);
-    };
 
     enum TokenType {
         ILLEGAL,
@@ -88,10 +69,10 @@ namespace t_cmp {
 
     class State {
         private:
-            StateTypeHolder* type;
+            toast::StateTypeHolder* type;
         public:
-            State(StateTypeHolder* type);
-            StateTypeHolder* get_type();
+            State(toast::StateTypeHolder* type);
+            toast::StateTypeHolder* get_type();
     };
 
     enum ScopeType {
@@ -134,5 +115,5 @@ namespace t_cmp {
 
     std::vector<Instruction*> generate_instruction_list(std::string source);
     std::string make_human_readable(std::vector<Instruction*>);
-    int parse_val(std::string literal, StateType type);
+    int parse_val(std::string literal, toast::StateType type);
 }
