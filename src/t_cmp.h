@@ -71,7 +71,7 @@ namespace t_cmp {
         PUSH,
         POP,
         SET,
-        SET_TO,
+        MOVE,
         RET,
         EXIT
     };

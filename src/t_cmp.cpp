@@ -39,7 +39,7 @@ std::string t_cmp::make_human_readable(std::vector<t_cmp::Instruction*> instruct
             case SET:
                 stream << "SET";
                 break;
-            case SET_TO:
+            case MOVE:
                 stream << "MOVE";
                 break;
         }
@@ -239,8 +239,8 @@ void t_cmp::Builder::handle_token() {
                         throw toast::Exception("Needs to be the same type");
                     }
                     int offset = get_var_offset(name) + 1;
-                    Instruction* set_to_instruction = new Instruction(SET_TO, { 0, offset });
-                    instructions.push_back(set_to_instruction);
+                    Instruction* move_instruction = new Instruction(MOVE, { 0, offset });
+                    instructions.push_back(move_instruction);
                 }
                 position += 3;
             } else {
@@ -275,8 +275,8 @@ void t_cmp::Builder::handle_token() {
                     throw toast::Exception("Needs to be the same type");
                 }
                 int offset = get_var_offset(name);
-                Instruction* set_to_instruction = new Instruction(SET_TO, { 0, offset });
-                instructions.push_back(set_to_instruction);
+                Instruction* move_instruction = new Instruction(MOVE, { 0, offset });
+                instructions.push_back(move_instruction);
             } else {
                 int parsed_val = t_cmp::parse_val(val->get_literal(), state->get_type()->get_main_type());
                 Instruction* set_instruction = new Instruction(SET, { offset, parsed_val });
