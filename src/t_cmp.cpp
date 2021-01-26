@@ -9,23 +9,17 @@ std::vector<t_cmp::Instruction*> t_cmp::generate_instruction_list(std::string so
         Lexer* lexer = new Lexer(source);
         std::vector<Token*> tokens = lexer->get_tokens();
         Builder* builder = new Builder(tokens);
-        // for (int i = 0; i < builder->get_instructions().size(); i++) {
-        //     Instruction* instruction = builder->get_instructions()[i];
-        //     std::cout << instruction->get_type();
-        //     for (int j = 0; j < instruction->get_args().size(); j++) {
-        //         int arg = instruction->get_args()[j];
-        //         std::cout << " " << arg;
-        //     }
-        //     std::cout << std::endl;
-        // }
-        return builder->get_instructions();
+        std::vector<Instruction*> instructions = builder->get_instructions();
+        delete lexer;
+        delete builder;
+        return instructions;
     } catch (toast::Exception e) {
         std::cout << std::endl << e.what() << std::endl;
         return {};
     }
 }
 
-std::string t_cmp::make_human_readable(std::vector<t_cmp::Instruction*> instructions) {
+std::string t_cmp::make_human_readable(std::vector<Instruction*> instructions) {
     std::stringstream stream;
     for (int i = 0; i < instructions.size(); i++) {
         Instruction* instruction = instructions[i];
@@ -50,6 +44,12 @@ std::string t_cmp::make_human_readable(std::vector<t_cmp::Instruction*> instruct
         stream << std::endl;
     }
     return stream.str();
+}
+
+void t_cmp::delete_instruction_list(std::vector<Instruction*> instructions) {
+    for (Instruction* instruction : instructions) {
+        delete instruction;
+    }
 }
 
 t_cmp::Lexer::Lexer(std::string source) {
@@ -515,4 +515,20 @@ int t_cmp::Builder::get_var_offset(std::string name) {
         offset += scope->get_state_stack().size();
     }
     throw toast::Exception("No var with name through Builder");
+}
+
+t_cmp::Builder::~Builder() {
+    for (Token* token : tokens) {
+        delete token;
+    }
+    for (Scope* scope : scope_stack) {
+        delete scope;
+    }
+
+}
+
+t_cmp::Scope::~Scope() {
+    for (State* state : state_stack) {
+        delete state;
+    }
 }

@@ -21,7 +21,9 @@ int main(int argc, char** argv) {
     }
     char* path = argv[1];
     std::string source = read_file(path);
-    std::string toasted = t_cmp::make_human_readable(t_cmp::generate_instruction_list(source));
+    std::vector<t_cmp::Instruction*> instructions = t_cmp::generate_instruction_list(source);
+    std::string toasted = t_cmp::make_human_readable(instructions);
     std::cout << toasted << std::endl;
+    t_cmp::delete_instruction_list(instructions);
     return 0;
 }

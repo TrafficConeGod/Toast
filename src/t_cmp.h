@@ -4,7 +4,6 @@
 #include "toast.h"
 
 namespace t_cmp {
-
     enum TokenType {
         ILLEGAL,
         FILE_END,
@@ -88,6 +87,7 @@ namespace t_cmp {
             std::map<std::string, State*> var_map;
         public:
             Scope(ScopeType type);
+            ~Scope();
             void push(State* state);
             std::vector<State*> get_state_stack();
             void add_var(std::string name, State* state);
@@ -109,6 +109,7 @@ namespace t_cmp {
             State* get_var(std::string name);
         public:
             Builder(std::vector<Token*> tokens);
+            ~Builder();
             std::vector<Instruction*> get_instructions();
 
     };
@@ -116,4 +117,5 @@ namespace t_cmp {
     std::vector<Instruction*> generate_instruction_list(std::string source);
     std::string make_human_readable(std::vector<Instruction*>);
     int parse_val(std::string literal, toast::StateType type);
+    void delete_instruction_list(std::vector<Instruction*> instructions);
 }
