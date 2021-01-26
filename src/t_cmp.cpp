@@ -83,6 +83,8 @@ void t_cmp::Lexer::handle_char() {
                     type = TYPE;
                 } else if (literal == "return") {
                     type = RETURN;
+                } else if (literal == "true" || literal == "false") {
+                    type = VAL;
                 } else {
                     type = IDENT;
                 }
@@ -209,6 +211,10 @@ void t_cmp::Builder::handle_token() {
                     if (!has_var(name)) {
                         throw toast::Exception("No var with name");
                     }
+                    State* var = get_var(name);
+                    if (!var->get_type()->equals(type_holder)) {
+                        throw toast::Exception("Needs to be the same type");
+                    }
                     int offset = get_var_offset(name) + 1;
                     Instruction* set_to_instruction = new Instruction(SET_TO, { 0, offset });
                     instructions.push_back(set_to_instruction);
@@ -240,6 +246,10 @@ void t_cmp::Builder::handle_token() {
                 std::string name = val->get_literal();
                 if (!has_var(name)) {
                     throw toast::Exception("No var with name");
+                }
+                State* var = get_var(name);
+                if (!var->get_type()->equals(state->get_type())) {
+                    throw toast::Exception("Needs to be the same type");
                 }
                 int offset = get_var_offset(name);
                 Instruction* set_to_instruction = new Instruction(SET_TO, { 0, offset });
@@ -380,15 +390,21 @@ t_cmp::StateTypeHolder* t_cmp::State::get_type() {
 
 int t_cmp::parse_val(std::string literal, StateType type) {
     switch (type) {
-        case INT:
-            {
-                std::stringstream stream(literal);
-                int val = 0;
-                stream >> val;
-                return val;
+        case INT: {
+            std::stringstream stream(literal);
+            int val = 0;
+            stream >> val;
+            if (val == 0 && literal != "0") {
+                throw toast::Exception("Not a number");
             }
-        case BOOL:
-            return 0;
+            return val;
+        } break;
+        case BOOL: {
+            if (literal != "true" && literal != "false") {
+                throw toast::Exception("Not a bool");
+            }
+            return literal == "true";
+        } break;
         default:
             return 0;
     }
@@ -497,4 +513,8 @@ int t_cmp::Builder::get_var_offset(std::string name) {
         offset += scope->get_state_stack().size();
     }
     throw toast::Exception("No var with name through Builder");
+}
+
+bool t_cmp::StateTypeHolder::equals(StateTypeHolder* type) {
+    return main_type == type->get_main_type();
 }

@@ -21,6 +21,7 @@ namespace t_cmp {
             StateType get_main_type();
             StateType get_return_type();
             std::vector<StateTypeHolder> get_func_args();
+            bool equals(StateTypeHolder* type);
     };
 
     enum TokenType {

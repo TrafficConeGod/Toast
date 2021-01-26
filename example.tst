@@ -1,7 +1,2 @@
-{
-    int x = 5
-    {
-        int b = 10
-    }
-    x = 100
-}
+int test = 10
+bool testb = true
