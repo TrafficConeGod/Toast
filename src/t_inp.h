@@ -1,11 +1,11 @@
 #include <iostream>
+#include "toast.h"
 
 namespace t_inp {
-    typedef unsigned char byte;
 
     class State {
         private:
-            byte* value;
+            toast::byte* value;
         public:
             std::string get_cpp_string();
     };

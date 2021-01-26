@@ -2,6 +2,8 @@
 #include <exception>
 
 namespace toast {
+    typedef unsigned char byte;
+    
     class Exception : public std::exception {
         private:
             const char* msg;
