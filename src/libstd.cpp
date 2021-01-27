@@ -1,8 +1,8 @@
 #include <iostream>
-#include "t_inp.h"
+#include "t_vm.h"
 
-t_inp::State* print(t_inp::State* msg_state) {
+t_vm::State* print(t_vm::State* msg_state) {
     std::string msg = msg_state->get_cpp_string();
     std::cout << msg;
-    return new t_inp::State(new toast::StateTypeHolder(toast::VOID));
+    return new t_vm::State(new toast::StateTypeHolder(toast::VOID));
 }

@@ -1,7 +1,11 @@
 #include "t_vm.h"
 
 void t_vm::execute(std::vector<toast::Instruction*> instructions) {
-    Runner runner = Runner(instructions);
+    try {
+        Runner runner = Runner(instructions);
+    } catch (toast::Exception e) {
+        std::cout << e.what() << std::endl;
+    }
 }
 
 t_vm::Runner::Runner(std::vector<toast::Instruction*> instructions) {
@@ -13,13 +17,16 @@ t_vm::Runner::Runner(std::vector<toast::Instruction*> instructions) {
 }
 
 t_vm::Runner::~Runner() {
-    
+    std::map<int, Frame*>::iterator it;
+    for (it = frames.begin(); it != frames.end(); it++) {
+        delete it->second;
+    }
 }
 
 void t_vm::Runner::set_frame(int key) {
-    if (key == frame_key) {
-        return;
-    }
+    // if (key == frame_key) {
+    //     return;
+    // }
     if (frames.count(key) == 0) {
         frames[key] = new Frame();
     }
@@ -69,10 +76,41 @@ void t_vm::Runner::handle_instruction() {
             pop_state();
         } break;
         case toast::SET: {
-            // State* state = get_state(args[0], args[1]);
-
+            State* state = get_state(args[0], args[1]);
+            if (args.size() > 2) {
+                state->set_value(args[2]);
+            } else {
+                // function
+                state->set_value(position);
+                for (int i = 0; i < instructions.size(); i++) {
+                    toast::Instruction* instruction = instructions[i];
+                    if (instruction->get_type() == toast::EXIT) {
+                        position = i;
+                        return;
+                    }
+                }
+            }
+        } break;
+        case toast::MOVE: {
+            State* state = get_state(args[0], args[1]);
+            State* from = get_state(args[2], args[3]);
+            state->set_value(from->get_value());
+        } break;
+        case toast::CALL: {
+            State* state = get_state(args[0], args[1]);
+            return_stack.push_back(position);
+            position = state->get_value().back();
+        } break;
+        case toast::EXIT: {
+            position = return_stack.back();
+            return_stack.pop_back();
+        } break;
+        case toast::FRAME: {
+            int frame_key = args[0];
+            set_frame(frame_key);
         } break;
         case toast::BACK: {
+            std::cout << "ae";
             Frame* frame = frames[frame_key];
             frames.erase(frame_key);
             set_frame(frame->get_return());
@@ -154,4 +192,13 @@ t_vm::Stack::~Stack() {
 }
 t_vm::State::~State() {
     delete type;
+}
+
+
+void t_vm::State::set_value(std::vector<int> val) {
+    this->value = val;
+}
+
+void t_vm::State::set_value(int val) {
+    this->value.push_back(val);
 }

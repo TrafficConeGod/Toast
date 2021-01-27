@@ -51,6 +51,7 @@ namespace t_vm {
             int frame_key = -1;
             std::vector<toast::Instruction*> instructions;
             std::map<int, Frame*> frames;
+            std::vector<int> return_stack;
         public:
             Runner(std::vector<toast::Instruction*>);
             ~Runner();
