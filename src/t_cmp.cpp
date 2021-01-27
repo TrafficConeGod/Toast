@@ -263,14 +263,15 @@ void t_cmp::Builder::handle_token() {
                     // add the function to the instruction list
                     toast::StateTypeHolder* type = new toast::StateTypeHolder(toast::FUNC);
                     type->func_init(get_type(literal), {});
-                    Instruction* push_instruction = new Instruction(PUSH, { type->get_main_type() });
-                    instructions.push_back(push_instruction);
-                    Instruction* set_instruction = new Instruction(SET, { 0 });
-                    instructions.push_back(set_instruction);
                     // add the state info to the stack
                     State* state = new State(type, stack_frame);
                     scope->push(state);
                     scope->add_var(name, state);
+                    // add instructions
+                    Instruction* push_instruction = new Instruction(PUSH, { type->get_main_type() });
+                    instructions.push_back(push_instruction);
+                    Instruction* set_instruction = new Instruction(SET, { state->get_stack_frame(), 0 });
+                    instructions.push_back(set_instruction);
                     // add the scope info to the stack
                     stack_frame++;
                     Scope* new_scope = new Scope(FUNCTION, stack_frame);
