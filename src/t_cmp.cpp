@@ -186,7 +186,7 @@ std::string t_cmp::Token::get_literal() {
 
 t_cmp::Builder::Builder(std::vector<Token*> tokens) {
     this->tokens = tokens;
-    Scope* global_scope = new Scope(GLOBAL);
+    Scope* global_scope = new Scope(GLOBAL, stack_frame);
     scope_stack.push_back(global_scope);
     for (position = 0; position < tokens.size(); position++) {
         handle_token();
@@ -273,7 +273,7 @@ void t_cmp::Builder::handle_token() {
                     scope->add_var(name, state);
                     // add the scope info to the stack
                     stack_frame++;
-                    Scope* new_scope = new Scope(FUNCTION);
+                    Scope* new_scope = new Scope(FUNCTION, stack_frame);
                     scope_stack.push_back(new_scope);
                     // advance ahead to ignore
                     position += 4;
@@ -287,6 +287,8 @@ void t_cmp::Builder::handle_token() {
             instructions.push_back(push_instruction);
 
             State* state = new State(type, stack_frame);
+            scope->push(state);
+            scope->add_var(name, state);
             if ((position + 3) < tokens.size() && tokens[position + 2]->get_type() != LINE_END) {
                 if (type->equals(toast::VOID)) {
                     throw toast::Exception("Can not set void");
@@ -309,7 +311,7 @@ void t_cmp::Builder::handle_token() {
                     if (!var->get_type()->equals(type)) {
                         throw toast::Exception("Needs to be the same type");
                     }
-                    int offset = get_var_offset(name) + 1;
+                    int offset = get_var_offset(name);
                     Instruction* move_instruction = new Instruction(MOVE, { state->get_stack_frame(), 0, var->get_stack_frame(), offset });
                     instructions.push_back(move_instruction);
                 }
@@ -317,8 +319,6 @@ void t_cmp::Builder::handle_token() {
             } else {
                 position++;
             }
-            scope->push(state);
-            scope->add_var(name, state);
         } break;
         case IDENT: {
             std::string name = token->get_literal();
@@ -374,7 +374,7 @@ void t_cmp::Builder::handle_token() {
         } break;
         case LEFT_BRACE: {
             check_block(position);
-            Scope* new_scope = new Scope(BLOCK);
+            Scope* new_scope = new Scope(BLOCK, stack_frame);
             scope_stack.push_back(new_scope);
         } break;
         case RIGHT_BRACE: {
@@ -545,8 +545,9 @@ std::vector<int> t_cmp::Instruction::get_args() {
     return args;
 };
 
-t_cmp::Scope::Scope(ScopeType type) {
+t_cmp::Scope::Scope(ScopeType type, int stack_frame) {
     this->type = type;
+    this->stack_frame = stack_frame;
 }
 
 void t_cmp::Scope::push(State* state) {
@@ -605,15 +606,22 @@ t_cmp::State* t_cmp::Builder::get_var(std::string name) {
 }
 
 int t_cmp::Builder::get_var_offset(std::string name) {
+    State* state = get_var(name);
     int offset = 0;
     for (int i = scope_stack.size() - 1; i >= 0; i--) {
         Scope* scope = scope_stack[i];
         if (scope->has_var(name)) {
             return scope->get_var_offset(name) + offset;
         }
-        offset += scope->get_state_stack().size();
+        if (scope->get_stack_frame() == state->get_stack_frame()) {
+            offset += scope->get_state_stack().size();
+        }
     }
     throw toast::Exception("No var with name through Builder");
+}
+
+int t_cmp::Scope::get_stack_frame() {
+    return stack_frame;
 }
 
 t_cmp::Builder::~Builder() {

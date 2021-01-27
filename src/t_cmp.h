@@ -89,8 +89,9 @@ namespace t_cmp {
             ScopeType type;
             std::vector<State*> state_stack;
             std::map<std::string, State*> var_map;
+            int stack_frame;
         public:
-            Scope(ScopeType type);
+            Scope(ScopeType type, int stack_frame);
             ~Scope();
             void push(State* state);
             std::vector<State*> get_state_stack();
@@ -99,6 +100,7 @@ namespace t_cmp {
             int get_var_offset(std::string name);
             State* get_var(std::string name);
             ScopeType get_type();
+            int get_stack_frame();
     };
 
     class Builder {
