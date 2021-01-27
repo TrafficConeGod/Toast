@@ -53,7 +53,8 @@ namespace t_cmp {
         SET,
         MOVE,
         CALL,
-        EXIT_FUNC
+        EXIT_FUNC,
+        FRAME
     };
 
     class Instruction {
@@ -69,9 +70,12 @@ namespace t_cmp {
     class State {
         private:
             toast::StateTypeHolder* type;
+            int stack_frame;
         public:
-            State(toast::StateTypeHolder* type);
+            State(toast::StateTypeHolder* type, int stack_frame);
+            void set_stack_frame();
             toast::StateTypeHolder* get_type();
+            int get_stack_frame();
     };
 
     enum ScopeType {
@@ -103,6 +107,7 @@ namespace t_cmp {
             std::vector<Token*> tokens;
             std::vector<Instruction*> instructions;
             std::vector<Scope*> scope_stack;
+            int stack_frame = 0;
             void handle_token();
             bool has_var(std::string name);
             int get_var_offset(std::string name);

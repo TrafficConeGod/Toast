@@ -42,6 +42,9 @@ std::string t_cmp::make_human_readable(std::vector<Instruction*> instructions) {
             case EXIT_FUNC:
                 stream << "EXIT_FUNC";
                 break;
+            case FRAME:
+                stream << "FRAME";
+                break;
             default:
                 throw toast::Exception("No name for instruction type");
         }
@@ -265,10 +268,11 @@ void t_cmp::Builder::handle_token() {
                     Instruction* set_instruction = new Instruction(SET, { 0 });
                     instructions.push_back(set_instruction);
                     // add the state info to the stack
-                    State* state = new State(type);
+                    State* state = new State(type, stack_frame);
                     scope->push(state);
                     scope->add_var(name, state);
                     // add the scope info to the stack
+                    stack_frame++;
                     Scope* new_scope = new Scope(FUNCTION);
                     scope_stack.push_back(new_scope);
                     // advance ahead to ignore
@@ -282,6 +286,7 @@ void t_cmp::Builder::handle_token() {
             Instruction* push_instruction = new Instruction(PUSH, { type->get_main_type() });
             instructions.push_back(push_instruction);
 
+            State* state = new State(type, stack_frame);
             if ((position + 3) < tokens.size() && tokens[position + 2]->get_type() != LINE_END) {
                 if (type->equals(toast::VOID)) {
                     throw toast::Exception("Can not set void");
@@ -293,7 +298,7 @@ void t_cmp::Builder::handle_token() {
                 }
                 if (val->get_type() == VAL) {
                     int parsed_val = t_cmp::parse_val(val->get_literal(), type);
-                    Instruction* set_instruction = new Instruction(SET, { 0, parsed_val });
+                    Instruction* set_instruction = new Instruction(SET, { state->get_stack_frame(), 0, parsed_val });
                     instructions.push_back(set_instruction);
                 } else {
                     std::string name = val->get_literal();
@@ -305,14 +310,13 @@ void t_cmp::Builder::handle_token() {
                         throw toast::Exception("Needs to be the same type");
                     }
                     int offset = get_var_offset(name) + 1;
-                    Instruction* move_instruction = new Instruction(MOVE, { 0, offset });
+                    Instruction* move_instruction = new Instruction(MOVE, { state->get_stack_frame(), 0, var->get_stack_frame(), offset });
                     instructions.push_back(move_instruction);
                 }
                 position += 3;
             } else {
                 position++;
             }
-            State* state = new State(type);
             scope->push(state);
             scope->add_var(name, state);
         } break;
@@ -345,11 +349,11 @@ void t_cmp::Builder::handle_token() {
                         throw toast::Exception("Needs to be the same type");
                     }
                     int var_offset = get_var_offset(var_name);
-                    Instruction* move_instruction = new Instruction(MOVE, { offset, var_offset });
+                    Instruction* move_instruction = new Instruction(MOVE, { state->get_stack_frame(), offset, var->get_stack_frame(), var_offset });
                     instructions.push_back(move_instruction);
                 } else {
                     int parsed_val = t_cmp::parse_val(val->get_literal(), state->get_type());
-                    Instruction* set_instruction = new Instruction(SET, { offset, parsed_val });
+                    Instruction* set_instruction = new Instruction(SET, { state->get_stack_frame(), offset, parsed_val });
                     instructions.push_back(set_instruction);
                 }
                 position += 2;
@@ -359,7 +363,9 @@ void t_cmp::Builder::handle_token() {
                 if (right_paren->get_type() != RIGHT_PAREN) {
                     throw toast::Exception("Expected right paren");
                 }
-                Instruction* call_instruction = new Instruction(CALL, { offset });
+                Instruction* frame_instruction = new Instruction(FRAME, { stack_frame + 1 });
+                instructions.push_back(frame_instruction);
+                Instruction* call_instruction = new Instruction(CALL, { state->get_stack_frame(), offset });
                 instructions.push_back(call_instruction);
                 position += 2;
                 return;
@@ -381,6 +387,7 @@ void t_cmp::Builder::handle_token() {
                 instructions.push_back(pop_instruction);
             }
             if (scope->get_type() == FUNCTION) {
+                stack_frame--;
                 Instruction* exit_func_instruction = new Instruction(EXIT_FUNC, { });
                 instructions.push_back(exit_func_instruction);
             }
@@ -490,12 +497,17 @@ std::vector<t_cmp::Instruction*> t_cmp::Builder::get_instructions() {
     return instructions;
 }
 
-t_cmp::State::State(toast::StateTypeHolder* type) {
+t_cmp::State::State(toast::StateTypeHolder* type, int stack_frame) {
     this->type = type;
+    this->stack_frame = stack_frame;
 }
 
 toast::StateTypeHolder* t_cmp::State::get_type() {
     return type;
+}
+
+int t_cmp::State::get_stack_frame() {
+    return stack_frame;
 }
 
 int t_cmp::parse_val(std::string literal, toast::StateTypeHolder* type) {
