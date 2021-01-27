@@ -13,7 +13,7 @@ t_vm::Runner::Runner(std::vector<toast::Instruction*> instructions) {
 }
 
 t_vm::Runner::~Runner() {
-
+    
 }
 
 void t_vm::Runner::set_frame(int key) {
@@ -142,6 +142,16 @@ t_vm::State* t_vm::Stack::pop_state() {
     return state;
 }
 
-t_vm::Frame::~Frame() {}
-t_vm::Stack::~Stack() {}
-t_vm::State::~State() {}
+t_vm::Frame::~Frame() {
+    for (Stack* stack : stacks) {
+        delete stack;
+    }
+}
+t_vm::Stack::~Stack() {
+    for (State* state : states) {
+        delete state;
+    }
+}
+t_vm::State::~State() {
+    delete type;
+}

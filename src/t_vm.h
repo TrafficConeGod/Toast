@@ -15,6 +15,8 @@ namespace t_vm {
             State(toast::StateTypeHolder* type);
             toast::StateTypeHolder* get_type();
             std::vector<int> get_value();
+            void set_value(std::vector<int> val);
+            void set_value(int val);
             std::string get_cpp_string();
     };
 
