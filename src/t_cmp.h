@@ -115,6 +115,9 @@ namespace t_cmp {
             int get_var_offset(std::string name);
             State* get_var(std::string name);
             void check_block(int position);
+            void declare_var(std::string name, toast::StateTypeHolder* type);
+            void set_var(std::string name, Token* token);
+            void call_function(std::string name);
         public:
             Builder(std::vector<Token*> tokens);
             ~Builder();

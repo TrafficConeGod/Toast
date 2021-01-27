@@ -9,5 +9,3 @@ bool some_function() {
 if (some_function() == false) {
     // well this wont actually execute trol
 }
-
-return num
