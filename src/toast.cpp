@@ -37,3 +37,16 @@ bool toast::StateTypeHolder::equals(StateTypeHolder* type) {
 bool toast::StateTypeHolder::equals(StateType type) {
     return main_type == type;
 }
+
+toast::Instruction::Instruction(InstructionType type, std::vector<int> args) {
+    this->type = type;
+    this->args = args;
+}
+
+toast::InstructionType toast::Instruction::get_type() {
+    return type;
+}
+
+std::vector<int> toast::Instruction::get_args() {
+    return args;
+}

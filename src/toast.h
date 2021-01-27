@@ -35,4 +35,27 @@ namespace toast {
             bool equals(StateTypeHolder* type);
             bool equals(StateType type);
     };
+
+
+    enum InstructionType {
+        NONE,
+        PUSH,
+        POP,
+        SET,
+        MOVE,
+        CALL,
+        EXIT_FUNC,
+        FRAME
+    };
+
+    class Instruction {
+        private:
+            InstructionType type;
+            std::vector<int> args;
+        public:
+            Instruction(InstructionType type, std::vector<int> args);
+            InstructionType get_type();
+            std::vector<int> get_args();
+    };
+
 }

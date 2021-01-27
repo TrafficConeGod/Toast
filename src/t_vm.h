@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "toast.h"
 
 namespace t_inp {
@@ -9,4 +10,6 @@ namespace t_inp {
         public:
             std::string get_cpp_string();
     };
+
+    void execute(std::vector<toast::Instruction*> instructions);
 }

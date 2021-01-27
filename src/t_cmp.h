@@ -46,27 +46,6 @@ namespace t_cmp {
             std::vector<Token*> get_tokens();
     };
 
-    enum InstructionType {
-        NONE,
-        PUSH,
-        POP,
-        SET,
-        MOVE,
-        CALL,
-        EXIT_FUNC,
-        FRAME
-    };
-
-    class Instruction {
-        private:
-            InstructionType type;
-            std::vector<int> args;
-        public:
-            Instruction(InstructionType type, std::vector<int> args);
-            InstructionType get_type();
-            std::vector<int> get_args();
-    };
-
     class State {
         private:
             toast::StateTypeHolder* type;
@@ -107,7 +86,7 @@ namespace t_cmp {
         private:
             int position = 0;
             std::vector<Token*> tokens;
-            std::vector<Instruction*> instructions;
+            std::vector<toast::Instruction*> instructions;
             std::vector<Scope*> scope_stack;
             int stack_frame = 0;
             void handle_token();
@@ -121,12 +100,12 @@ namespace t_cmp {
         public:
             Builder(std::vector<Token*> tokens);
             ~Builder();
-            std::vector<Instruction*> get_instructions();
+            std::vector<toast::Instruction*> get_instructions();
 
     };
 
-    std::vector<Instruction*> generate_instruction_list(std::string source);
-    std::string make_human_readable(std::vector<Instruction*>);
+    std::vector<toast::Instruction*> generate_instruction_list(std::string source);
+    std::string make_human_readable(std::vector<toast::Instruction*>);
     int parse_val(std::string literal, toast::StateTypeHolder* type);
-    void delete_instruction_list(std::vector<Instruction*> instructions);
+    void delete_instruction_list(std::vector<toast::Instruction*> instructions);
 }
