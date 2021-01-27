@@ -364,7 +364,7 @@ void t_cmp::Builder::handle_token() {
                 if (right_paren->get_type() != RIGHT_PAREN) {
                     throw toast::Exception("Expected right paren");
                 }
-                Instruction* frame_instruction = new Instruction(FRAME, { stack_frame + 1 });
+                Instruction* frame_instruction = new Instruction(FRAME, { state->get_stack_frame() + 1 });
                 instructions.push_back(frame_instruction);
                 Instruction* call_instruction = new Instruction(CALL, { state->get_stack_frame(), offset });
                 instructions.push_back(call_instruction);
