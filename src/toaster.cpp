@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include "t_vm.h"
 #include "t_cmp.h"
 
 std::string read_file(std::string path) {
@@ -24,6 +25,7 @@ int main(int argc, char** argv) {
     std::vector<toast::Instruction*> instructions = t_cmp::generate_instruction_list(source);
     std::string toasted = t_cmp::make_human_readable(instructions);
     std::cout << toasted << std::endl;
+    t_vm::execute(instructions);
     t_cmp::delete_instruction_list(instructions);
     return 0;
 }

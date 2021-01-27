@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <exception>
 #include <vector>
@@ -44,8 +45,9 @@ namespace toast {
         SET,
         MOVE,
         CALL,
-        EXIT_FUNC,
-        FRAME
+        EXIT,
+        FRAME,
+        BACK
     };
 
     class Instruction {

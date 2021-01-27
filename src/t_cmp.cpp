@@ -6,12 +6,10 @@
 
 std::vector<toast::Instruction*> t_cmp::generate_instruction_list(std::string source) {
     try {
-        Lexer* lexer = new Lexer(source);
-        std::vector<Token*> tokens = lexer->get_tokens();
-        Builder* builder = new Builder(tokens);
-        std::vector<toast::Instruction*> instructions = builder->get_instructions();
-        delete lexer;
-        delete builder;
+        Lexer lexer = Lexer(source);
+        std::vector<Token*> tokens = lexer.get_tokens();
+        Builder builder = Builder(tokens);
+        std::vector<toast::Instruction*> instructions = builder.get_instructions();
         return instructions;
     } catch (toast::Exception e) {
         std::cout << std::endl << e.what() << std::endl;
@@ -39,11 +37,14 @@ std::string t_cmp::make_human_readable(std::vector<toast::Instruction*> instruct
             case toast::CALL:
                 stream << "CALL";
                 break;
-            case toast::EXIT_FUNC:
-                stream << "EXIT_FUNC";
+            case toast::EXIT:
+                stream << "EXIT";
                 break;
             case toast::FRAME:
                 stream << "FRAME";
+                break;
+            case toast::BACK:
+                stream << "BACK";
                 break;
             default:
                 throw toast::Exception("No name for instruction type");
@@ -385,8 +386,12 @@ void t_cmp::Builder::handle_token() {
             }
             if (scope->get_type() == FUNCTION) {
                 stack_frame--;
-                toast::Instruction* exit_func_instruction = new toast::Instruction(toast::EXIT_FUNC, { });
-                instructions.push_back(exit_func_instruction);
+                toast::Instruction* back_instruction = new toast::Instruction(toast::BACK, { });
+                instructions.push_back(back_instruction);
+            }
+            if (scope->get_type() == FUNCTION) {
+                toast::Instruction* exit_instruction = new toast::Instruction(toast::EXIT, { });
+                instructions.push_back(exit_instruction);
             }
             scope_stack.pop_back();
         } break;
