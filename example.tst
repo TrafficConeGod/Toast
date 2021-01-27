@@ -1,6 +1,8 @@
-int x = 10
-{
-    bool y = true
-    bool z = y
+int x = 100
+
+void test() {
+    int y = 10
+    int z = 3
 }
-int y = 40
+
+test()

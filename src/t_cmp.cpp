@@ -36,6 +36,14 @@ std::string t_cmp::make_human_readable(std::vector<Instruction*> instructions) {
             case MOVE:
                 stream << "MOVE";
                 break;
+            case CALL:
+                stream << "CALL";
+                break;
+            case EXIT_FUNC:
+                stream << "EXIT_FUNC";
+                break;
+            default:
+                throw toast::Exception("No name for instruction type");
         }
         for (int j = 0; j < instruction->get_args().size(); j++) {
             int arg = instruction->get_args()[j];
@@ -102,7 +110,7 @@ void t_cmp::Lexer::handle_char() {
                     return;
                 }
                 literal = get_source_until_non_letter();
-                if (literal == "int" || literal == "bool") {
+                if (literal == "int" || literal == "bool" || literal == "void") {
                     type = TYPE;
                 } else if (literal == "return") {
                     type = RETURN;
@@ -182,6 +190,37 @@ t_cmp::Builder::Builder(std::vector<Token*> tokens) {
     }
 }
 
+toast::StateTypeHolder* get_type(std::string literal) {
+    toast::StateType type_enum;
+    if (literal == "void") {
+        type_enum = toast::VOID;
+    } else if (literal == "int") {
+        type_enum = toast::INT;
+    } else if (literal == "bool") {
+        type_enum = toast::BOOL;
+    } else {
+        throw toast::Exception("Invalid type");
+    }
+    return new toast::StateTypeHolder(type_enum);
+}
+
+void t_cmp::Builder::check_block(int position) {
+    if (position >= tokens.size()) {
+        throw toast::Exception("There is no next token");
+    }
+    Token* left_bracket = tokens[position];
+    if (left_bracket->get_type() == LEFT_BRACE) {
+        for (int i = position + 1; i < tokens.size(); i++) {
+            if (tokens[i]->get_type() == RIGHT_BRACE) {
+                return;
+            }
+        }
+        throw toast::Exception("Expected right bracket");
+    } else {
+        throw toast::Exception("Expected left bracket");
+    }
+}
+
 void t_cmp::Builder::handle_token() {
     Token* token = tokens[position];
     // InstructionType type = NONE;
@@ -206,27 +245,54 @@ void t_cmp::Builder::handle_token() {
                 throw toast::Exception("Var has already been declared");
             }
             std::string literal = token->get_literal();
-            toast::StateType type_enum;
-            if (literal == "int") {
-                type_enum = toast::INT;
-            } else if (literal == "bool") {
-                type_enum = toast::BOOL;
-            } else {
-                throw toast::Exception("Invalid type");
+
+            // check if we can even check if theres a function definition
+            if ((position + 4) < tokens.size()) {
+                Token* left_paren = tokens[position + 2];
+                Token* right_paren = tokens[position + 3];
+                // check if theres a matching () pair (no arg support yet)
+                if (left_paren->get_type() == LEFT_PAREN) {
+                    if (right_paren->get_type() != RIGHT_PAREN) {
+                        throw toast::Exception("Expected right paren");
+                    }
+                    // check if this is a valid block
+                    check_block(position + 4);
+                    // add the function to the instruction list
+                    toast::StateTypeHolder* type = new toast::StateTypeHolder(toast::FUNC);
+                    type->func_init(get_type(literal), {});
+                    Instruction* push_instruction = new Instruction(PUSH, { type->get_main_type() });
+                    instructions.push_back(push_instruction);
+                    Instruction* set_instruction = new Instruction(SET, { 0 });
+                    instructions.push_back(set_instruction);
+                    // add the state info to the stack
+                    State* state = new State(type);
+                    scope->push(state);
+                    scope->add_var(name, state);
+                    // add the scope info to the stack
+                    Scope* new_scope = new Scope(FUNCTION);
+                    scope_stack.push_back(new_scope);
+                    // advance ahead to ignore
+                    position += 4;
+                    return;
+                }
             }
-            toast::StateTypeHolder* type_holder = new toast::StateTypeHolder(type_enum);
             
-            Instruction* push_instruction = new Instruction(PUSH, { type_enum });
+            toast::StateTypeHolder* type = get_type(literal);
+            
+            Instruction* push_instruction = new Instruction(PUSH, { type->get_main_type() });
             instructions.push_back(push_instruction);
 
             if ((position + 3) < tokens.size() && tokens[position + 2]->get_type() != LINE_END) {
+                if (type->equals(toast::VOID)) {
+                    throw toast::Exception("Can not set void");
+                }
                 Token* assign = tokens[position + 2];
                 Token* val = tokens[position + 3];
                 if (assign->get_type() != ASSIGN || (val->get_type() != VAL && val->get_type() != IDENT)) {
                     throw toast::Exception("Needs to be an assign with a value");
                 }
                 if (val->get_type() == VAL) {
-                    int parsed_val = t_cmp::parse_val(val->get_literal(), type_enum);
+                    int parsed_val = t_cmp::parse_val(val->get_literal(), type);
                     Instruction* set_instruction = new Instruction(SET, { 0, parsed_val });
                     instructions.push_back(set_instruction);
                 } else {
@@ -235,7 +301,7 @@ void t_cmp::Builder::handle_token() {
                         throw toast::Exception("No var with name");
                     }
                     State* var = get_var(name);
-                    if (!var->get_type()->equals(type_holder)) {
+                    if (!var->get_type()->equals(type)) {
                         throw toast::Exception("Needs to be the same type");
                     }
                     int offset = get_var_offset(name) + 1;
@@ -246,7 +312,7 @@ void t_cmp::Builder::handle_token() {
             } else {
                 position++;
             }
-            State* state = new State(type_holder);
+            State* state = new State(type);
             scope->push(state);
             scope->add_var(name, state);
         } break;
@@ -256,35 +322,52 @@ void t_cmp::Builder::handle_token() {
                 throw toast::Exception("No var with name");
             }
             State* state = get_var(name);
+            if (state->get_type()->equals(toast::VOID)) {
+                throw toast::Exception("Can not set void");
+            }
             int offset = get_var_offset(name);
             if ((position + 2) >= tokens.size()) {
                 throw toast::Exception("There is no next token");
             }
-            Token* assign = tokens[position + 1];
-            Token* val = tokens[position + 2];
-            if (assign->get_type() != ASSIGN || (val->get_type() != VAL && val->get_type() != IDENT)) {
-                throw toast::Exception("Must be assign and value expression");
-            }
-            if (val->get_type() == IDENT) {
-                std::string name = val->get_literal();
-                if (!has_var(name)) {
-                    throw toast::Exception("No var with name");
+            Token* next = tokens[position + 1];
+            if (next->get_type() == ASSIGN) {
+                Token* val = tokens[position + 2];
+                if (val->get_type() != VAL && val->get_type() != IDENT) {
+                    throw toast::Exception("Must be assign and value expression");
                 }
-                State* var = get_var(name);
-                if (!var->get_type()->equals(state->get_type())) {
-                    throw toast::Exception("Needs to be the same type");
+                if (val->get_type() == IDENT) {
+                    std::string var_name = val->get_literal();
+                    if (!has_var(var_name)) {
+                        throw toast::Exception("No var with name");
+                    }
+                    State* var = get_var(var_name);
+                    if (!var->get_type()->equals(state->get_type())) {
+                        throw toast::Exception("Needs to be the same type");
+                    }
+                    int var_offset = get_var_offset(var_name);
+                    Instruction* move_instruction = new Instruction(MOVE, { offset, var_offset });
+                    instructions.push_back(move_instruction);
+                } else {
+                    int parsed_val = t_cmp::parse_val(val->get_literal(), state->get_type());
+                    Instruction* set_instruction = new Instruction(SET, { offset, parsed_val });
+                    instructions.push_back(set_instruction);
                 }
-                int offset = get_var_offset(name);
-                Instruction* move_instruction = new Instruction(MOVE, { 0, offset });
-                instructions.push_back(move_instruction);
-            } else {
-                int parsed_val = t_cmp::parse_val(val->get_literal(), state->get_type()->get_main_type());
-                Instruction* set_instruction = new Instruction(SET, { offset, parsed_val });
-                instructions.push_back(set_instruction);
+                position += 2;
+                return;
+            } else if (next->get_type() == LEFT_PAREN) {
+                Token* right_paren = tokens[position + 2];
+                if (right_paren->get_type() != RIGHT_PAREN) {
+                    throw toast::Exception("Expected right paren");
+                }
+                Instruction* call_instruction = new Instruction(CALL, { offset });
+                instructions.push_back(call_instruction);
+                position += 2;
+                return;
             }
-            position += 2;
+            throw toast::Exception("Expected expression");
         } break;
         case LEFT_BRACE: {
+            check_block(position);
             Scope* new_scope = new Scope(BLOCK);
             scope_stack.push_back(new_scope);
         } break;
@@ -296,6 +379,10 @@ void t_cmp::Builder::handle_token() {
             for (int i = 0; i < state_stack.size(); i++) {
                 Instruction* pop_instruction = new Instruction(POP, { });
                 instructions.push_back(pop_instruction);
+            }
+            if (scope->get_type() == FUNCTION) {
+                Instruction* exit_func_instruction = new Instruction(EXIT_FUNC, { });
+                instructions.push_back(exit_func_instruction);
             }
             scope_stack.pop_back();
         } break;
@@ -411,8 +498,8 @@ toast::StateTypeHolder* t_cmp::State::get_type() {
     return type;
 }
 
-int t_cmp::parse_val(std::string literal, toast::StateType type) {
-    switch (type) {
+int t_cmp::parse_val(std::string literal, toast::StateTypeHolder* type) {
+    switch (type->get_main_type()) {
         case toast::INT: {
             std::stringstream stream(literal);
             int val = 0;

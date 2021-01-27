@@ -52,8 +52,8 @@ namespace t_cmp {
         POP,
         SET,
         MOVE,
-        RET,
-        EXIT
+        CALL,
+        EXIT_FUNC
     };
 
     class Instruction {
@@ -107,6 +107,7 @@ namespace t_cmp {
             bool has_var(std::string name);
             int get_var_offset(std::string name);
             State* get_var(std::string name);
+            void check_block(int position);
         public:
             Builder(std::vector<Token*> tokens);
             ~Builder();
@@ -116,6 +117,6 @@ namespace t_cmp {
 
     std::vector<Instruction*> generate_instruction_list(std::string source);
     std::string make_human_readable(std::vector<Instruction*>);
-    int parse_val(std::string literal, toast::StateType type);
+    int parse_val(std::string literal, toast::StateTypeHolder* type);
     void delete_instruction_list(std::vector<Instruction*> instructions);
 }

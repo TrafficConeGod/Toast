@@ -4,6 +4,7 @@
 
 namespace toast {
     typedef unsigned char byte;
+    typedef unsigned int arg;
     
     class Exception : public std::exception {
         private:
@@ -14,6 +15,7 @@ namespace toast {
     };
 
     enum StateType {
+        VOID,
         INT,
         BOOL,
         FUNC
@@ -22,14 +24,15 @@ namespace toast {
     class StateTypeHolder {
         private:
             StateType main_type;
-            StateType return_type;
+            StateTypeHolder* return_type;
             std::vector<StateTypeHolder*> func_args;
         public:
             StateTypeHolder(StateType main_type);
-            void func_init(StateType return_type, std::vector<StateTypeHolder*> func_args);
+            void func_init(StateTypeHolder* return_type, std::vector<StateTypeHolder*> func_args);
             StateType get_main_type();
-            StateType get_return_type();
+            StateTypeHolder* get_return_type();
             std::vector<StateTypeHolder*> get_func_args();
             bool equals(StateTypeHolder* type);
+            bool equals(StateType type);
     };
 }
