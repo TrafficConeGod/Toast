@@ -82,7 +82,7 @@ void t_vm::Runner::handle_instruction() {
 }
 
 t_vm::State::State(toast::StateTypeHolder* type) {
-
+    this->type = type;
 }
 
 void t_vm::Frame::push_stack(int key) {
