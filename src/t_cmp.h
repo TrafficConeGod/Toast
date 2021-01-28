@@ -98,6 +98,7 @@ namespace t_cmp {
             void declare_var(std::string name, toast::StateTypeHolder* type);
             void set_var(std::string name, Token* token);
             void call_function(std::string name);
+            int get_skip_amount(int position);
         public:
             Builder(std::vector<Token*> tokens);
             ~Builder();

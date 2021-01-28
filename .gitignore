@@ -1,3 +1,4 @@
 out
 .vscode
-test.sh
+run.sh
+debug.sh

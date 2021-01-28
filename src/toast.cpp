@@ -50,3 +50,44 @@ toast::InstructionType toast::Instruction::get_type() {
 std::vector<int> toast::Instruction::get_args() {
     return args;
 }
+
+std::string toast::make_human_readable(Instruction* instruction) {
+    std::stringstream stream;
+    switch (instruction->get_type()) {
+        case PUSH:
+            stream << "PUSH";
+            break;
+        case POP:
+            stream << "POP";
+            break;
+        case SET:
+            stream << "SET";
+            break;
+        case MOVE:
+            stream << "MOVE";
+            break;
+        case CALL:
+            stream << "CALL";
+            break;
+        case EXIT:
+            stream << "EXIT";
+            break;
+        case FRAME:
+            stream << "FRAME";
+            break;
+        case BACK:
+            stream << "BACK";
+            break;
+        case SKIP:
+            stream << "SKIP";
+            break;
+        default:
+            throw Exception("No name for instruction type");
+    }
+    for (int j = 0; j < instruction->get_args().size(); j++) {
+        int arg = instruction->get_args()[j];
+        stream << " " << arg;
+    }
+    stream << std::endl;
+    return stream.str();
+}

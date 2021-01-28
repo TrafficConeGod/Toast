@@ -65,6 +65,7 @@ void t_vm::Runner::handle_instruction() {
     toast::Instruction* instruction = instructions[position];
     toast::InstructionType type = instruction->get_type();
     std::vector<int> args = instruction->get_args();
+    std::cout << toast::make_human_readable(instruction);
     switch (type) {
         case toast::PUSH: {
             int type_id = args[0];
@@ -77,19 +78,14 @@ void t_vm::Runner::handle_instruction() {
         } break;
         case toast::SET: {
             State* state = get_state(args[0], args[1]);
-            if (args.size() > 2) {
+            if (!state->get_type()->equals(toast::FUNC)) {
                 state->set_value(args[2]);
             } else {
-                // function
-                state->set_value(position);
-                for (int i = 0; i < instructions.size(); i++) {
-                    toast::Instruction* instruction = instructions[i];
-                    if (instruction->get_type() == toast::EXIT) {
-                        position = i;
-                        return;
-                    }
-                }
+                state->set_value(position + 1);
             }
+        } break;
+        case toast::SKIP: {
+            position += args[0];
         } break;
         case toast::MOVE: {
             State* state = get_state(args[0], args[1]);
@@ -110,7 +106,6 @@ void t_vm::Runner::handle_instruction() {
             set_frame(frame_key);
         } break;
         case toast::BACK: {
-            std::cout << "ae";
             Frame* frame = frames[frame_key];
             frames.erase(frame_key);
             set_frame(frame->get_return());

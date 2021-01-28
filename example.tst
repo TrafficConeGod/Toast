@@ -1,4 +1,7 @@
-{
-    int x = 10
-    int y = 20
+void test() {
+    void testing() {
+        
+    }
 }
+
+test()

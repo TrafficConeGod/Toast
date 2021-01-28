@@ -2,6 +2,7 @@
 #include <iostream>
 #include <exception>
 #include <vector>
+#include <sstream>
 
 namespace toast {
     typedef unsigned char byte;
@@ -47,7 +48,8 @@ namespace toast {
         CALL,
         EXIT,
         FRAME,
-        BACK
+        BACK,
+        SKIP
     };
 
     class Instruction {
@@ -59,5 +61,7 @@ namespace toast {
             InstructionType get_type();
             std::vector<int> get_args();
     };
+
+    std::string make_human_readable(Instruction* instruction);
 
 }

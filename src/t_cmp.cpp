@@ -20,40 +20,7 @@ std::vector<toast::Instruction*> t_cmp::generate_instruction_list(std::string so
 std::string t_cmp::make_human_readable(std::vector<toast::Instruction*> instructions) {
     std::stringstream stream;
     for (int i = 0; i < instructions.size(); i++) {
-        toast::Instruction* instruction = instructions[i];
-        switch (instruction->get_type()) {
-            case toast::PUSH:
-                stream << "PUSH";
-                break;
-            case toast::POP:
-                stream << "POP";
-                break;
-            case toast::SET:
-                stream << "SET";
-                break;
-            case toast::MOVE:
-                stream << "MOVE";
-                break;
-            case toast::CALL:
-                stream << "CALL";
-                break;
-            case toast::EXIT:
-                stream << "EXIT";
-                break;
-            case toast::FRAME:
-                stream << "FRAME";
-                break;
-            case toast::BACK:
-                stream << "BACK";
-                break;
-            default:
-                throw toast::Exception("No name for instruction type");
-        }
-        for (int j = 0; j < instruction->get_args().size(); j++) {
-            int arg = instruction->get_args()[j];
-            stream << " " << arg;
-        }
-        stream << std::endl;
+        stream << toast::make_human_readable(instructions[i]);
     }
     return stream.str();
 }
@@ -260,6 +227,8 @@ void t_cmp::Builder::set_var(std::string name, Token* token) {
     if (state->get_type()->equals(toast::FUNC)) {
         toast::Instruction* set_instruction = new toast::Instruction(toast::SET, { state->get_stack_frame(), 0 });
         instructions.push_back(set_instruction);
+        toast::Instruction* skip_instruction = new toast::Instruction(toast::SKIP, { });
+        instructions.push_back(skip_instruction);
     } else {
         if (token->get_type() == VAL) {
             int parsed_val = t_cmp::parse_val(token->get_literal(), state->get_type());
@@ -392,6 +361,16 @@ void t_cmp::Builder::handle_token() {
             if (scope->get_type() == FUNCTION) {
                 toast::Instruction* exit_instruction = new toast::Instruction(toast::EXIT, { });
                 instructions.push_back(exit_instruction);
+                // ugly code incoming
+                for (int i = instructions.size() - 1; i >= 0; i--) {
+                    toast::Instruction* instruction = instructions[i];
+                    if (instruction->get_type() == toast::SKIP && instruction->get_args().size() == 0) {
+                        toast::Instruction* skip_instruction = new toast::Instruction(toast::SKIP, { ((int)instructions.size() - 1) - i });
+                        instructions[i] = skip_instruction;
+                        delete instruction;
+                        break;
+                    }
+                }
             }
             scope_stack.pop_back();
         } break;
