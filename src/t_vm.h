@@ -28,6 +28,7 @@ namespace t_vm {
             void push_state(State* state);
             State* pop_state();
             State* get_state(int offset);
+            bool is_empty();
     };
 
     class Frame {

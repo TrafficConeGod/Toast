@@ -53,11 +53,11 @@ t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder* type) {
 t_vm::State* t_vm::Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    std::cout << "Popped state of type " << state->get_type()->get_main_type() << " of value {";
-    for (int val : state->get_value()) {
-        std::cout << " " << val;
-    } 
-    std::cout << " } from the stack" << std::endl;
+    // std::cout << "Popped state of type " << state->get_type()->get_main_type() << " of value {";
+    // for (int val : state->get_value()) {
+    //     std::cout << " " << val;
+    // } 
+    // std::cout << " } from the stack" << std::endl;
     return state;
 }
 
@@ -65,7 +65,7 @@ void t_vm::Runner::handle_instruction() {
     toast::Instruction* instruction = instructions[position];
     toast::InstructionType type = instruction->get_type();
     std::vector<int> args = instruction->get_args();
-    std::cout << toast::make_human_readable(instruction);
+    std::cout << frame_key << " " << toast::make_human_readable(instruction);
     switch (type) {
         case toast::PUSH: {
             int type_id = args[0];
@@ -124,6 +124,7 @@ void t_vm::Frame::push_stack(int key) {
 }
 
 void t_vm::Frame::pop_stack() {
+    std::cout << "STACKPOP";
     last = keys.back();
     keys.pop_back();
     delete stacks.back();
@@ -143,6 +144,9 @@ void t_vm::Frame::push_state(State* state) {
 t_vm::State* t_vm::Frame::pop_state() {
     Stack* stack = stacks.back();
     State* state = stack->pop_state();
+    if (stack->is_empty()) {
+        pop_stack();
+    }
     return state;
 }
 
@@ -196,4 +200,8 @@ void t_vm::State::set_value(std::vector<int> val) {
 
 void t_vm::State::set_value(int val) {
     this->value.push_back(val);
+}
+
+bool t_vm::Stack::is_empty() {
+    return states.size() == 0;
 }
