@@ -372,6 +372,7 @@ void t_cmp::Builder::handle_token() {
                     }
                 }
             }
+            delete scope_stack.back();
             scope_stack.pop_back();
         } break;
     }
