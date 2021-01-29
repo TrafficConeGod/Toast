@@ -57,7 +57,7 @@ namespace t_vm {
             Runner(std::vector<toast::Instruction*>);
             ~Runner();
             void handle_instruction();
-            void set_frame(int frame_key);
+            void set_frame(int frame_key, bool push_stack);
             State* get_state(int frame_key, int offset);
             State* push_state(toast::StateTypeHolder* type);
             State* pop_state();

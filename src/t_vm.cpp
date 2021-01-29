@@ -9,7 +9,7 @@ void t_vm::execute(std::vector<toast::Instruction*> instructions) {
 }
 
 t_vm::Runner::Runner(std::vector<toast::Instruction*> instructions) {
-    set_frame(0);
+    set_frame(0, true);
     this->instructions = instructions;
     for (position = 0; position < instructions.size(); position++) {
         handle_instruction();
@@ -23,7 +23,7 @@ t_vm::Runner::~Runner() {
     }
 }
 
-void t_vm::Runner::set_frame(int key) {
+void t_vm::Runner::set_frame(int key, bool push_stack) {
     // if (key == frame_key) {
     //     return;
     // }
@@ -31,7 +31,9 @@ void t_vm::Runner::set_frame(int key) {
         frames[key] = new Frame();
     }
     Frame* frame = frames[key];
-    frame->push_stack(frame_key);
+    if (push_stack) {
+        frame->push_stack(frame_key);
+    }
     frame_key = key;
 }
 
@@ -53,11 +55,11 @@ t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder* type) {
 t_vm::State* t_vm::Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    // std::cout << "Popped state of type " << state->get_type()->get_main_type() << " of value {";
-    // for (int val : state->get_value()) {
-    //     std::cout << " " << val;
-    // } 
-    // std::cout << " } from the stack" << std::endl;
+    std::cout << "Popped state of type " << state->get_type()->get_main_type() << " of value {";
+    for (int val : state->get_value()) {
+        std::cout << " " << val;
+    } 
+    std::cout << " } from the stack" << std::endl;
     return state;
 }
 
@@ -103,12 +105,12 @@ void t_vm::Runner::handle_instruction() {
         } break;
         case toast::FRAME: {
             int frame_key = args[0];
-            set_frame(frame_key);
+            set_frame(frame_key, true);
         } break;
         case toast::BACK: {
             Frame* frame = frames[frame_key];
             frames.erase(frame_key);
-            set_frame(frame->get_return());
+            set_frame(frame->get_return(), false);
             delete frame;
         } break;
     }
@@ -124,7 +126,6 @@ void t_vm::Frame::push_stack(int key) {
 }
 
 void t_vm::Frame::pop_stack() {
-    std::cout << "STACKPOP";
     last = keys.back();
     keys.pop_back();
     delete stacks.back();
@@ -171,9 +172,11 @@ t_vm::State* t_vm::Stack::get_state(int offset) {
 
 void t_vm::Stack::push_state(State* state) {
     states.push_back(state);
+    std::cout << "PUSH: " << states.size() << std::endl;
 }
 
 t_vm::State* t_vm::Stack::pop_state() {
+    std::cout << "POP: " << states.size() << std::endl;
     State* state = states.back();
     states.pop_back();
     return state;
