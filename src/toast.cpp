@@ -51,9 +51,9 @@ std::vector<int> toast::Instruction::get_args() {
     return args;
 }
 
-std::string toast::make_human_readable(Instruction* instruction) {
+std::string toast::make_human_readable(Instruction instruction) {
     std::stringstream stream;
-    switch (instruction->get_type()) {
+    switch (instruction.get_type()) {
         case PUSH:
             stream << "PUSH";
             break;
@@ -84,8 +84,8 @@ std::string toast::make_human_readable(Instruction* instruction) {
         default:
             throw Exception("No name for instruction type");
     }
-    for (int j = 0; j < instruction->get_args().size(); j++) {
-        int arg = instruction->get_args()[j];
+    for (int j = 0; j < instruction.get_args().size(); j++) {
+        int arg = instruction.get_args()[j];
         stream << " " << arg;
     }
     stream << std::endl;

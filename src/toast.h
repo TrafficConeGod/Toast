@@ -62,6 +62,6 @@ namespace toast {
             std::vector<int> get_args();
     };
 
-    std::string make_human_readable(Instruction* instruction);
+    std::string make_human_readable(Instruction instruction);
 
 }

@@ -67,7 +67,7 @@ void t_vm::Runner::handle_instruction() {
     toast::Instruction* instruction = instructions[position];
     toast::InstructionType type = instruction->get_type();
     std::vector<int> args = instruction->get_args();
-    std::cout << frame_key << " " << toast::make_human_readable(instruction);
+    // std::cout << frame_key << " " << toast::make_human_readable(instruction);
     switch (type) {
         case toast::PUSH: {
             int type_id = args[0];

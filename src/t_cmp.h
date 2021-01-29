@@ -38,13 +38,13 @@ namespace t_cmp {
         private:
             int position = 0;
             std::string source;
-            std::vector<Token*> tokens;
+            std::vector<Token> tokens;
             void handle_char();
             std::string get_source_until_non_letter();
             std::string get_source_until_non_digit();
         public:
             Lexer(std::string source);
-            std::vector<Token*> get_tokens();
+            std::vector<Token> get_tokens();
     };
 
     class State {
@@ -86,8 +86,8 @@ namespace t_cmp {
     class Builder {
         private:
             int position = 0;
-            std::vector<Token*> tokens;
-            std::vector<toast::Instruction*> instructions;
+            std::vector<Token> tokens;
+            std::vector<toast::Instruction> instructions;
             std::vector<Scope*> scope_stack;
             int stack_frame = 0;
             void handle_token();
@@ -96,18 +96,18 @@ namespace t_cmp {
             State* get_var(std::string name);
             void check_block(int position);
             void declare_var(std::string name, toast::StateTypeHolder* type);
-            void set_var(std::string name, Token* token);
+            void set_var(std::string name, Token token);
             void call_function(std::string name);
             int get_skip_amount(int position);
         public:
-            Builder(std::vector<Token*> tokens);
+            Builder(std::vector<Token> tokens);
             ~Builder();
-            std::vector<toast::Instruction*> get_instructions();
+            std::vector<toast::Instruction> get_instructions();
 
     };
 
-    std::vector<toast::Instruction*> generate_instruction_list(std::string source);
-    std::string make_human_readable(std::vector<toast::Instruction*>);
+    std::vector<toast::Instruction> generate_instruction_list(std::string source);
+    std::string make_human_readable(std::vector<toast::Instruction>);
     int parse_val(std::string literal, toast::StateTypeHolder* type);
-    void delete_instruction_list(std::vector<toast::Instruction*> instructions);
+    void delete_instruction_list(std::vector<toast::Instruction> instructions);
 }
