@@ -50,11 +50,11 @@ namespace t_vm {
         private:
             int position = 0;
             int frame_key = -1;
-            std::vector<toast::Instruction*> instructions;
+            std::vector<toast::Instruction> instructions;
             std::map<int, Frame*> frames;
             std::vector<int> return_stack;
         public:
-            Runner(std::vector<toast::Instruction*>);
+            Runner(std::vector<toast::Instruction>);
             ~Runner();
             void handle_instruction();
             void set_frame(int frame_key, bool push_stack);
@@ -63,5 +63,5 @@ namespace t_vm {
             State* pop_state();
     };
 
-    void execute(std::vector<toast::Instruction*> instructions);
+    void execute(std::vector<toast::Instruction> instructions);
 }

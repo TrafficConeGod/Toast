@@ -1,6 +1,6 @@
 #include "t_vm.h"
 
-void t_vm::execute(std::vector<toast::Instruction*> instructions) {
+void t_vm::execute(std::vector<toast::Instruction> instructions) {
     try {
         Runner runner = Runner(instructions);
     } catch (toast::Exception e) {
@@ -8,7 +8,7 @@ void t_vm::execute(std::vector<toast::Instruction*> instructions) {
     }
 }
 
-t_vm::Runner::Runner(std::vector<toast::Instruction*> instructions) {
+t_vm::Runner::Runner(std::vector<toast::Instruction> instructions) {
     set_frame(0, true);
     this->instructions = instructions;
     for (position = 0; position < instructions.size(); position++) {
@@ -64,10 +64,10 @@ t_vm::State* t_vm::Runner::pop_state() {
 }
 
 void t_vm::Runner::handle_instruction() {
-    toast::Instruction* instruction = instructions[position];
-    toast::InstructionType type = instruction->get_type();
-    std::vector<int> args = instruction->get_args();
-    // std::cout << frame_key << " " << toast::make_human_readable(instruction);
+    toast::Instruction instruction = instructions[position];
+    toast::InstructionType type = instruction.get_type();
+    std::vector<int> args = instruction.get_args();
+    std::cout << frame_key << " " << toast::make_human_readable(instruction);
     switch (type) {
         case toast::PUSH: {
             int type_id = args[0];
