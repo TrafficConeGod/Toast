@@ -76,7 +76,7 @@ void t_vm::Runner::handle_instruction() {
             push_state(type);
         } break;
         case toast::POP: {
-            pop_state();
+            delete pop_state();
         } break;
         case toast::SET: {
             State* state = get_state(args[0], args[1]);
