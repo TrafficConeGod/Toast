@@ -8,12 +8,12 @@ namespace t_vm {
 
     class State {
         private:
-            toast::StateTypeHolder* type;
+            std::vector<toast::StateTypeHolder> type;
             std::vector<int> value;
         public:
             ~State();
-            State(toast::StateTypeHolder* type);
-            toast::StateTypeHolder* get_type();
+            State(toast::StateTypeHolder type);
+            toast::StateTypeHolder get_type();
             std::vector<int> get_value();
             void set_value(std::vector<int> val);
             void set_value(int val);
@@ -59,7 +59,7 @@ namespace t_vm {
             void handle_instruction();
             void set_frame(int frame_key, bool push_stack);
             State* get_state(int frame_key, int offset);
-            State* push_state(toast::StateTypeHolder* type);
+            State* push_state(toast::StateTypeHolder type);
             State* pop_state();
     };
 

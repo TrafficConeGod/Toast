@@ -45,7 +45,7 @@ t_vm::State* t_vm::Runner::get_state(int key, int offset) {
     return frame->get_state(offset);
 }
 
-t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder* type) {
+t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder type) {
     State* state = new State(type);
     Frame* frame = frames[frame_key];
     frame->push_state(state);
@@ -55,7 +55,7 @@ t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder* type) {
 t_vm::State* t_vm::Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    std::cout << "Popped state of type " << state->get_type()->get_main_type() << " of value {";
+    std::cout << "Popped state of type " << state->get_type().get_main_type() << " of value {";
     for (int val : state->get_value()) {
         std::cout << " " << val;
     } 
@@ -72,7 +72,7 @@ void t_vm::Runner::handle_instruction() {
         case toast::PUSH: {
             int type_id = args[0];
             toast::StateType type_enum = (toast::StateType) type_id;
-            toast::StateTypeHolder* type = new toast::StateTypeHolder(type_enum);
+            toast::StateTypeHolder type = toast::StateTypeHolder(type_enum);
             push_state(type);
         } break;
         case toast::POP: {
@@ -80,7 +80,7 @@ void t_vm::Runner::handle_instruction() {
         } break;
         case toast::SET: {
             State* state = get_state(args[0], args[1]);
-            if (!state->get_type()->equals(toast::FUNC)) {
+            if (!state->get_type().equals(toast::FUNC)) {
                 state->set_value(args[2]);
             } else {
                 state->set_value(position + 1);
@@ -116,8 +116,8 @@ void t_vm::Runner::handle_instruction() {
     }
 }
 
-t_vm::State::State(toast::StateTypeHolder* type) {
-    this->type = type;
+t_vm::State::State(toast::StateTypeHolder type) {
+    this->type.push_back(type);
 }
 
 void t_vm::Frame::push_stack(int key) {
@@ -155,8 +155,8 @@ int t_vm::Frame::get_return() {
     return last;
 }
 
-toast::StateTypeHolder* t_vm::State::get_type() {
-    return type;
+toast::StateTypeHolder t_vm::State::get_type() {
+    return type.back();
 }
 
 std::vector<int> t_vm::State::get_value() {
@@ -193,7 +193,7 @@ t_vm::Stack::~Stack() {
     }
 }
 t_vm::State::~State() {
-    delete type;
+    // delete type;
 }
 
 

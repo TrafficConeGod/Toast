@@ -49,12 +49,12 @@ namespace t_cmp {
 
     class State {
         private:
-            toast::StateTypeHolder* type;
+            std::vector<toast::StateTypeHolder> type;
             int stack_frame;
         public:
-            State(toast::StateTypeHolder* type, int stack_frame);
+            State(toast::StateTypeHolder type, int stack_frame);
             void set_stack_frame();
-            toast::StateTypeHolder* get_type();
+            toast::StateTypeHolder get_type();
             int get_stack_frame();
     };
 
@@ -95,7 +95,7 @@ namespace t_cmp {
             int get_var_offset(std::string name);
             State* get_var(std::string name);
             void check_block(int position);
-            void declare_var(std::string name, toast::StateTypeHolder* type);
+            void declare_var(std::string name, toast::StateTypeHolder type);
             void set_var(std::string name, Token token);
             void call_function(std::string name);
             int get_skip_amount(int position);
@@ -108,6 +108,6 @@ namespace t_cmp {
 
     std::vector<toast::Instruction> generate_instruction_list(std::string source);
     std::string make_human_readable(std::vector<toast::Instruction>);
-    int parse_val(std::string literal, toast::StateTypeHolder* type);
+    int parse_val(std::string literal, toast::StateTypeHolder type);
     void delete_instruction_list(std::vector<toast::Instruction> instructions);
 }
