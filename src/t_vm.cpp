@@ -55,11 +55,7 @@ t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder type) {
 t_vm::State* t_vm::Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    // std::cout << "Popped state of type " << state->get_type().get_main_type() << " of value {";
-    // for (int val : state->get_value()) {
-    //     std::cout << " " << val;
-    // } 
-    // std::cout << " } from the stack" << std::endl;
+    std::cout << "Popped state of type " << state->get_type().get_main_type() << std::endl;
     return state;
 }
 
@@ -105,6 +101,10 @@ void t_vm::Runner::handle_instruction() {
             State* state = get_state(args[0], args[1]);
             return_stack.push_back(position);
             position = state->get_value<int>();
+            for (int i = 2; i < args.size(); i += 2) {
+                State* arg_state = get_state(args[i], args[i + 2]);
+                call_args.push_back(arg_state);
+            }
         } break;
         case toast::EXIT: {
             position = return_stack.back();
@@ -119,6 +119,19 @@ void t_vm::Runner::handle_instruction() {
             frames.erase(frame_key);
             set_frame(frame->get_return(), false);
             delete frame;
+        } break;
+        case toast::ARG: {
+            State* move_to = get_state(args[0], args[1]);
+            State* arg_state = call_args.front();
+            call_args.pop_front();
+            move_to->move_value_from(arg_state);
+        } break;
+        case toast::RETURN: {
+            return_state = get_state(args[0], args[1]);
+            // later add skipping code stuff
+        } break;
+        default: {
+            throw toast::Exception("No support for instruction");
         } break;
     }
 }

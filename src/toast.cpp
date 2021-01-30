@@ -80,6 +80,12 @@ std::string toast::make_human_readable(Instruction instruction) {
         case SKIP:
             stream << "SKIP";
             break;
+        case ARG:
+            stream << "ARG";
+            break;
+        case RETURN:
+            stream << "RETURN";
+            break;
         default:
             throw Exception("No name for instruction type");
     }

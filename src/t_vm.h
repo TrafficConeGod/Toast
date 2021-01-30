@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <deque>
 #include "toast.h"
 #include <any>
 
@@ -59,6 +60,8 @@ namespace t_vm {
             std::vector<toast::Instruction> instructions;
             std::map<int, Frame*> frames;
             std::vector<int> return_stack;
+            std::deque<State*> call_args;
+            State* return_state;
         public:
             Runner(std::vector<toast::Instruction>);
             ~Runner();
