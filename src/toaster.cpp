@@ -32,6 +32,8 @@ int main(int argc, char** argv) {
     instructions.push_back(toast::Instruction(toast::SET, { 0, 0, 10 }));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::STRING }));
     instructions.push_back(toast::Instruction(toast::SET, { 0, 0 }, "Hello world!"));
+    instructions.push_back(toast::Instruction(toast::PUSH, { toast::FUNC, 1, toast::BOOL, 1, toast::INT }));
+    instructions.push_back(toast::Instruction(toast::SET, { 0, 0 }));
     t_vm::execute(instructions);
     return 0;
 }

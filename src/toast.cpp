@@ -12,22 +12,22 @@ toast::StateTypeHolder::StateTypeHolder(StateType main_type) {
     this->main_type = main_type;
 }
 
-void toast::StateTypeHolder::func_init(StateTypeHolder return_type, std::vector<StateTypeHolder> func_args) {
-    this->return_type.push_back(return_type);
-    this->func_args = func_args;
-}
+// void toast::StateTypeHolder::func_init(StateTypeHolder return_type, std::vector<StateTypeHolder> func_args) {
+//     this->return_type.push_back(return_type);
+//     this->func_args = func_args;
+// }
 
 toast::StateType toast::StateTypeHolder::get_main_type() {
     return main_type;
 }
 
-toast::StateTypeHolder toast::StateTypeHolder::get_return_type() {
-    return return_type.back();
-}
+// toast::StateTypeHolder toast::StateTypeHolder::get_return_type() {
+//     return return_type.back();
+// }
 
-std::vector<toast::StateTypeHolder> toast::StateTypeHolder::get_func_args() {
-    return func_args;
-}
+// std::vector<toast::StateTypeHolder> toast::StateTypeHolder::get_func_args() {
+//     return func_args;
+// }
 
 bool toast::StateTypeHolder::equals(StateTypeHolder type) {
     return main_type == type.get_main_type();
@@ -99,4 +99,33 @@ toast::Instruction::Instruction(InstructionType type, std::vector<int> args, std
 
 std::string toast::Instruction::get_string() {
     return str;
+}
+
+toast::StateTypeHolder::StateTypeHolder(StateType main_type, std::vector<StateTypeHolder> sub_types) {
+    this->main_type = main_type;
+    this->sub_types = sub_types;
+}
+
+toast::StateTypeHolder::StateTypeHolder(std::vector<int> type_args) {
+    main_type = (StateType) type_args[0];
+    switch (main_type) {
+        case FUNC:
+        case ARRAY: {
+            for (int i = 1; i < type_args.size(); i++) {
+                int val = type_args[i];
+                // inefficient code incoming
+                // fill the vector with the section
+                std::vector<int> sub_args;
+                for (int j = i + 1; j < i + 1 + val; j++) {
+                    sub_args.push_back(type_args[j]);
+                }
+                sub_types.push_back(StateTypeHolder(sub_args));
+                i += val;
+            }
+        } break;
+    }
+    std::cout << "Main type: " << main_type << std::endl;
+    for (StateTypeHolder sub_type : sub_types) {
+        std::cout << "Sub type: " << sub_type.get_main_type() << std::endl;
+    }
 }

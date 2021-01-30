@@ -302,8 +302,8 @@ void t_cmp::Builder::handle_token() {
                     position += 4;
                     check_block(position);
                     // create the type
-                    toast::StateTypeHolder type = toast::StateTypeHolder(toast::FUNC);
-                    type.func_init(get_type(literal), {});
+                    toast::StateTypeHolder type = toast::StateTypeHolder(toast::FUNC, { get_type(literal) });
+                    // type.func_init(get_type(literal), {});
                     // declare the var
                     declare_var(name, type);
                     set_var(name, Token(ILLEGAL, ""));

@@ -20,23 +20,22 @@ namespace toast {
         VOID,
         INT,
         BOOL,
-        STRING,
-        FLOAT,
         FUNC,
-        ARRAY
+        STRING,
+        ARRAY,
+        FLOAT
     };
 
     class StateTypeHolder {
         private:
             StateType main_type;
-            std::vector<StateTypeHolder> return_type;
-            std::vector<StateTypeHolder> func_args;
+            std::vector<StateTypeHolder> sub_types;
         public:
             StateTypeHolder(StateType main_type);
-            void func_init(StateTypeHolder return_type, std::vector<StateTypeHolder> func_args);
+            StateTypeHolder(StateType main_type, std::vector<StateTypeHolder> sub_types);
+            StateTypeHolder(std::vector<int> type_args);
             StateType get_main_type();
-            StateTypeHolder get_return_type();
-            std::vector<StateTypeHolder> get_func_args();
+            std::vector<StateTypeHolder> get_sub_types();
             bool equals(StateTypeHolder type);
             bool equals(StateType type);
     };

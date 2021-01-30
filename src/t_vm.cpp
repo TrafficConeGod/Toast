@@ -70,9 +70,7 @@ void t_vm::Runner::handle_instruction() {
     std::cout << frame_key << " " << toast::make_human_readable(instruction);
     switch (type) {
         case toast::PUSH: {
-            int type_id = args[0];
-            toast::StateType type_enum = (toast::StateType) type_id;
-            toast::StateTypeHolder type = toast::StateTypeHolder(type_enum);
+            toast::StateTypeHolder type = toast::StateTypeHolder(args);
             push_state(type);
         } break;
         case toast::POP: {
