@@ -86,6 +86,9 @@ std::string toast::make_human_readable(Instruction instruction) {
         case RETURN:
             stream << "RETURN";
             break;
+        case MOVE_RETURN:
+            stream << "MOVE_RETURN";
+            break;
         default:
             throw Exception("No name for instruction type");
     }

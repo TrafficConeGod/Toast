@@ -53,7 +53,8 @@ namespace toast {
         BACK,
         SKIP,
         ARG,
-        RETURN
+        RETURN,
+        MOVE_RETURN
     };
 
     class Instruction {

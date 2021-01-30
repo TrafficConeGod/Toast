@@ -21,6 +21,10 @@ t_vm::Runner::~Runner() {
     for (it = frames.begin(); it != frames.end(); it++) {
         delete it->second;
     }
+    for (State* state : call_args) {
+        delete state;
+    }
+    // delete return_state;
 }
 
 void t_vm::Runner::set_frame(int key, bool push_stack) {
@@ -129,6 +133,10 @@ void t_vm::Runner::handle_instruction() {
         case toast::RETURN: {
             return_state = get_state(args[0], args[1]);
             // later add skipping code stuff
+        } break;
+        case toast::MOVE_RETURN: {
+            State* move_to = get_state(args[0], args[1]);
+            move_to->move_value_from(return_state);
         } break;
         default: {
             throw toast::Exception("No support for instruction");
