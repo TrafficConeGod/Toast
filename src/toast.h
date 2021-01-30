@@ -51,7 +51,9 @@ namespace toast {
         EXIT,
         FRAME,
         BACK,
-        SKIP
+        SKIP,
+        ARG,
+        RETURN
     };
 
     class Instruction {

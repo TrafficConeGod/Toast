@@ -34,6 +34,21 @@ int main(int argc, char** argv) {
     instructions.push_back(toast::Instruction(toast::SET, { 0, 0 }, "Hello world!"));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::FUNC, 1, toast::BOOL, 1, toast::INT }));
     instructions.push_back(toast::Instruction(toast::SET, { 0, 0 }));
+    instructions.push_back(toast::Instruction(toast::SKIP, { 9 }));
+    instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
+    instructions.push_back(toast::Instruction(toast::ARG, { 1, 0 }));
+    instructions.push_back(toast::Instruction(toast::PUSH, { toast::BOOL }));
+    instructions.push_back(toast::Instruction(toast::SET, { 1, 0, 1 }));
+    instructions.push_back(toast::Instruction(toast::RETURN, { 1, 0 }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
+    instructions.push_back(toast::Instruction(toast::BACK, {  }));
+    instructions.push_back(toast::Instruction(toast::EXIT, {  }));
+    instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
+    instructions.push_back(toast::Instruction(toast::SET, { 0, 0, 20 }));
+    instructions.push_back(toast::Instruction(toast::FRAME, { 1 }));
+    instructions.push_back(toast::Instruction(toast::CALL, { 0, 1, 0, 0 }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
     t_vm::execute(instructions);
     return 0;
 }

@@ -85,6 +85,9 @@ void t_vm::Runner::handle_instruction() {
                 case toast::STRING: {
                     state->set_value<std::string>(instruction.get_string());
                 } break;
+                case toast::ARRAY: {
+                    state->set_value<std::vector<std::any>>({});
+                } break;
                 default: {
                     state->set_value<int>(args[2]);
                 } break;
@@ -211,7 +214,7 @@ t_vm::State::~State() {
 
 template<typename T>
 void t_vm::State::set_value(T val) {
-
+    value = val;
 }
 
 template<typename T>

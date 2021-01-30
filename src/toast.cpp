@@ -124,8 +124,4 @@ toast::StateTypeHolder::StateTypeHolder(std::vector<int> type_args) {
             }
         } break;
     }
-    std::cout << "Main type: " << main_type << std::endl;
-    for (StateTypeHolder sub_type : sub_types) {
-        std::cout << "Sub type: " << sub_type.get_main_type() << std::endl;
-    }
 }
