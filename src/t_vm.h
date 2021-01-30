@@ -3,20 +3,26 @@
 #include <vector>
 #include <map>
 #include "toast.h"
+#include <any>
 
 namespace t_vm {
 
     class State {
         private:
             std::vector<toast::StateTypeHolder> type;
-            std::vector<int> value;
+            std::any value;
         public:
             ~State();
             State(toast::StateTypeHolder type);
             toast::StateTypeHolder get_type();
-            std::vector<int> get_value();
-            void set_value(std::vector<int> val);
-            void set_value(int val);
+            template<typename T>
+            T get_value();
+            template<typename T>
+            void set_value(T val);
+            std::any get_value_any();
+            void move_value_from(State* state);
+            // void set_value(std::vector<int> val);
+            // void set_value(int val);
             std::string get_cpp_string();
     };
 

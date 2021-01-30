@@ -55,11 +55,11 @@ t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder type) {
 t_vm::State* t_vm::Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    std::cout << "Popped state of type " << state->get_type().get_main_type() << " of value {";
-    for (int val : state->get_value()) {
-        std::cout << " " << val;
-    } 
-    std::cout << " } from the stack" << std::endl;
+    // std::cout << "Popped state of type " << state->get_type().get_main_type() << " of value {";
+    // for (int val : state->get_value()) {
+    //     std::cout << " " << val;
+    // } 
+    // std::cout << " } from the stack" << std::endl;
     return state;
 }
 
@@ -80,10 +80,16 @@ void t_vm::Runner::handle_instruction() {
         } break;
         case toast::SET: {
             State* state = get_state(args[0], args[1]);
-            if (!state->get_type().equals(toast::FUNC)) {
-                state->set_value(args[2]);
-            } else {
-                state->set_value(position + 1);
+            switch (state->get_type().get_main_type()) {
+                case toast::FUNC: {
+                    state->set_value<int>(position + 1);
+                } break;
+                case toast::STRING: {
+                    state->set_value<std::string>(instruction.get_string());
+                } break;
+                default: {
+                    state->set_value<int>(args[2]);
+                } break;
             }
         } break;
         case toast::SKIP: {
@@ -92,12 +98,12 @@ void t_vm::Runner::handle_instruction() {
         case toast::MOVE: {
             State* state = get_state(args[0], args[1]);
             State* from = get_state(args[2], args[3]);
-            state->set_value(from->get_value());
+            state->move_value_from(from);
         } break;
         case toast::CALL: {
             State* state = get_state(args[0], args[1]);
             return_stack.push_back(position);
-            position = state->get_value().back();
+            position = state->get_value<int>();
         } break;
         case toast::EXIT: {
             position = return_stack.back();
@@ -159,9 +165,9 @@ toast::StateTypeHolder t_vm::State::get_type() {
     return type.back();
 }
 
-std::vector<int> t_vm::State::get_value() {
-    return value;
-}
+// std::vector<int> t_vm::State::get_value() {
+//     return {};
+// }
 
 
 
@@ -172,11 +178,11 @@ t_vm::State* t_vm::Stack::get_state(int offset) {
 
 void t_vm::Stack::push_state(State* state) {
     states.push_back(state);
-    std::cout << "PUSH: " << states.size() << std::endl;
+    // std::cout << "PUSH: " << states.size() << std::endl;
 }
 
 t_vm::State* t_vm::Stack::pop_state() {
-    std::cout << "POP: " << states.size() << std::endl;
+    // std::cout << "POP: " << states.size() << std::endl;
     State* state = states.back();
     states.pop_back();
     return state;
@@ -197,14 +203,33 @@ t_vm::State::~State() {
 }
 
 
-void t_vm::State::set_value(std::vector<int> val) {
-    this->value = val;
+// void t_vm::State::set_value(std::vector<int> val) {
+//     this->value = val;
+// }
+
+// void t_vm::State::set_value(int val) {
+//     this->value.push_back(val);
+// }
+
+template<typename T>
+void t_vm::State::set_value(T val) {
+
 }
 
-void t_vm::State::set_value(int val) {
-    this->value.push_back(val);
+template<typename T>
+T t_vm::State::get_value() {
+    return std::any_cast<T>(value);
 }
+
 
 bool t_vm::Stack::is_empty() {
     return states.size() == 0;
+}
+
+std::any t_vm::State::get_value_any() {
+    return value;
+}
+
+void t_vm::State::move_value_from(State* state) {
+    value = state->get_value_any();
 }

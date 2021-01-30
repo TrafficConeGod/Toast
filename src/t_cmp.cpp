@@ -25,6 +25,7 @@ std::string t_cmp::make_human_readable(std::vector<toast::Instruction> instructi
     return stream.str();
 }
 
+// unused
 void t_cmp::delete_instruction_list(std::vector<toast::Instruction> instructions) {
     // for (toast::Instruction instruction : instructions) {
     //     delete instruction;

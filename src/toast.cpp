@@ -90,3 +90,13 @@ std::string toast::make_human_readable(Instruction instruction) {
     stream << std::endl;
     return stream.str();
 }
+
+toast::Instruction::Instruction(InstructionType type, std::vector<int> args, std::string str) {
+    this->type = type;
+    this->args = args;
+    this->str = str;
+}
+
+std::string toast::Instruction::get_string() {
+    return str;
+}
