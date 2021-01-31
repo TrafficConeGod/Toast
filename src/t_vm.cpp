@@ -46,7 +46,17 @@ t_vm::State* t_vm::Runner::get_state(int val, int offset) {
         toast::StateTypeHolder type = toast::StateTypeHolder((toast::StateType) val);
         State* state = new State(type);
         state->set_temp(true);
-        state->set_value<std::any>(offset);
+        switch (state->get_type().get_main_type()) {
+            case toast::INT: {
+                state->set_value<int>(offset);
+            } break;
+            case toast::BOOL: {
+                state->set_value<bool>(offset);
+            } break;
+            default: {
+                throw toast::Exception("No support for quick type");
+            } break;
+        }
         return state;
     } else {
         int key = (val + 1) * -1;
@@ -88,6 +98,12 @@ void t_vm::Runner::handle_instruction() {
         case toast::SET: {
             State* state = get_state(args[0], args[1]);
             switch (state->get_type().get_main_type()) {
+                case toast::INT: {
+                    state->set_value<int>(args[2]);
+                } break;
+                case toast::BOOL: {
+                    state->set_value<bool>(args[2]);
+                } break;
                 case toast::FUNC: {
                     state->set_value<int>(position + 1);
                 } break;
@@ -95,10 +111,10 @@ void t_vm::Runner::handle_instruction() {
                     state->set_value<std::string>(instruction.get_string());
                 } break;
                 case toast::ARRAY: {
-                    state->set_value<std::vector<std::any>>({});
+                    state->set_value<int>(0);
                 } break;
                 default: {
-                    state->set_value<int>(args[2]);
+                    throw toast::Exception("No support for type");
                 } break;
             }
             state->clean();
@@ -279,11 +295,15 @@ t_vm::State::~State() {
 
 template<typename T>
 void t_vm::State::set_value(T val) {
+    has_value = true;
     value = val;
 }
 
 template<typename T>
 T t_vm::State::get_value() {
+    if (!has_value) {
+        throw toast::Exception("Has no value");
+    }
     return std::any_cast<T>(value);
 }
 
@@ -297,12 +317,32 @@ std::any t_vm::State::get_value_any() {
 }
 
 void t_vm::State::move_value_from(State* state) {
+    has_value = true;
     value = state->get_value_any();
 }
 
 bool t_vm::State::equals(State* state) {
-    return false;
-    // return value == state->get_value_any();
+    toast::StateTypeHolder type = get_type();
+    toast::StateTypeHolder other_type = state->get_type();
+    if (!type.equals(other_type)) {
+        return false;
+    }
+    toast::StateType type_enum = type.get_main_type();
+    switch (type_enum) {
+        case toast::INT:
+            return get_value<int>() == state->get_value<int>();
+        case toast::BOOL:
+            return get_value<bool>() == state->get_value<bool>();
+        case toast::STRING:
+            return get_value<std::string>() == state->get_value<std::string>();
+        case toast::FUNC:
+        case toast::ARRAY:
+            return false;
+        case toast::VOID:
+            return true;
+        default:
+            throw toast::Exception("Unsupported type");
+    }
 }
 
 void t_vm::State::set_temp(bool temp) {

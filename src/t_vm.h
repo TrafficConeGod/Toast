@@ -11,6 +11,7 @@ namespace t_vm {
     class State {
         private:
             std::vector<toast::StateTypeHolder> type;
+            bool has_value;
             std::any value;
             bool temp;
         public:
