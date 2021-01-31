@@ -89,9 +89,6 @@ std::string toast::make_human_readable(Instruction instruction) {
         case MOVE_RETURN:
             stream << "MOVE_RETURN";
             break;
-        case MOVE_MATH:
-            stream << "MOVE_MATH";
-            break;
         case ADD:
             stream << "ADD";
             break;

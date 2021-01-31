@@ -55,7 +55,6 @@ namespace toast {
         ARG,
         RETURN,
         MOVE_RETURN,
-        MOVE_MATH,
         ADD,
         SUBTRACT,
         MULTIPLY,

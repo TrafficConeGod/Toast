@@ -32,9 +32,8 @@ int main(int argc, char** argv) {
     instructions.push_back(toast::Instruction(toast::SET, { 0, 0, 10 }));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
     instructions.push_back(toast::Instruction(toast::SET, { 0, 0, 35 }));
-    instructions.push_back(toast::Instruction(toast::ADD, { 0, 0, 0, 1 }));
+    instructions.push_back(toast::Instruction(toast::ADD, { 0, 1, 0, 0, 0, 1 }));
     instructions.push_back(toast::Instruction(toast::POP, {  }));
-    instructions.push_back(toast::Instruction(toast::MOVE_MATH, { 0, 0 }));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::STRING }));
     instructions.push_back(toast::Instruction(toast::SET, { 0, 0 }, "Hello world!"));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::FUNC, 1, toast::BOOL, 1, toast::INT }));

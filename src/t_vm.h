@@ -63,7 +63,6 @@ namespace t_vm {
             std::vector<int> return_stack;
             std::deque<State*> call_args;
             State* return_state;
-            State* math_state;
         public:
             Runner(std::vector<toast::Instruction>);
             ~Runner();
