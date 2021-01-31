@@ -12,6 +12,7 @@ namespace t_vm {
         private:
             std::vector<toast::StateTypeHolder> type;
             std::any value;
+            bool temp;
         public:
             ~State();
             State(toast::StateTypeHolder type);
@@ -26,6 +27,8 @@ namespace t_vm {
             // void set_value(int val);
             std::string get_cpp_string();
             bool equals(State* state);
+            void set_temp(bool temp);
+            void clean();
     };
 
     class Stack {

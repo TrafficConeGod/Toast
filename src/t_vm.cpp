@@ -41,12 +41,21 @@ void t_vm::Runner::set_frame(int key, bool push_stack) {
     frame_key = key;
 }
 
-t_vm::State* t_vm::Runner::get_state(int key, int offset) {
-    if (frames.count(key) == 0) {
-        throw toast::Exception("Frame does not exist");
+t_vm::State* t_vm::Runner::get_state(int val, int offset) {
+    if (val >= 0) {
+        toast::StateTypeHolder type = toast::StateTypeHolder((toast::StateType) val);
+        State* state = new State(type);
+        state->set_temp(true);
+        state->set_value<std::any>(offset);
+        return state;
+    } else {
+        int key = (val + 1) * -1;
+        if (frames.count(key) == 0) {
+            throw toast::Exception("Frame does not exist");
+        }
+        Frame* frame = frames[key];
+        return frame->get_state(offset);
     }
-    Frame* frame = frames[key];
-    return frame->get_state(offset);
 }
 
 t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder type) {
@@ -92,6 +101,7 @@ void t_vm::Runner::handle_instruction() {
                     state->set_value<int>(args[2]);
                 } break;
             }
+            state->clean();
         } break;
         case toast::SKIP: {
             position += args[0];
@@ -100,6 +110,8 @@ void t_vm::Runner::handle_instruction() {
             State* state = get_state(args[0], args[1]);
             State* from = get_state(args[2], args[3]);
             state->move_value_from(from);
+            state->clean();
+            from->clean();
         } break;
         case toast::CALL: {
             State* state = get_state(args[0], args[1]);
@@ -109,6 +121,7 @@ void t_vm::Runner::handle_instruction() {
                 State* arg_state = get_state(args[i], args[i + 1]);
                 call_args.push_back(arg_state);
             }
+            state->clean();
         } break;
         case toast::EXIT: {
             position = return_stack.back();
@@ -125,10 +138,11 @@ void t_vm::Runner::handle_instruction() {
             delete frame;
         } break;
         case toast::ARG: {
-            State* move_to = get_state(args[0], args[1]);
+            State* move_into = get_state(args[0], args[1]);
             State* arg_state = call_args.front();
             call_args.pop_front();
-            move_to->move_value_from(arg_state);
+            move_into->move_value_from(arg_state);
+            arg_state->clean();
         } break;
         case toast::RETURN: {
             return_state = get_state(args[0], args[1]);
@@ -137,12 +151,16 @@ void t_vm::Runner::handle_instruction() {
         case toast::MOVE_RETURN: {
             State* move_to = get_state(args[0], args[1]);
             move_to->move_value_from(return_state);
+            return_state->clean();
+            move_to->clean();
         } break;
         case toast::EQUALS: {
             State* move_into = get_state(args[0], args[1]);
             State* equals_1 = get_state(args[2], args[3]);
             State* equals_2 = get_state(args[4], args[5]);
             move_into->set_value<bool>(equals_1->equals(equals_2));
+            equals_1->clean();
+            equals_2->clean();
         } break;
         case toast::ADD:
         case toast::SUBTRACT:
@@ -159,6 +177,7 @@ void t_vm::Runner::handle_instruction() {
                     case toast::MULTIPLY: val *= op_state->get_value<int>(); break;
                     case toast::DIVIDE: val /= op_state->get_value<int>(); break;
                 }
+                op_state->clean();
             }
             move_into->set_value<int>(val);
         } break;
@@ -169,6 +188,7 @@ void t_vm::Runner::handle_instruction() {
 }
 
 t_vm::State::State(toast::StateTypeHolder type) {
+    temp = false;
     this->type.push_back(type);
 }
 
@@ -283,4 +303,14 @@ void t_vm::State::move_value_from(State* state) {
 bool t_vm::State::equals(State* state) {
     return false;
     // return value == state->get_value_any();
+}
+
+void t_vm::State::set_temp(bool temp) {
+    this->temp = temp;
+}
+
+void t_vm::State::clean() {
+    if (temp) {
+        delete this;
+    }
 }
