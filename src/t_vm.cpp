@@ -1,11 +1,11 @@
 #include "t_vm.h"
 
 void t_vm::execute(std::vector<toast::Instruction> instructions) {
-    try {
+    // try {
         Runner runner = Runner(instructions);
-    } catch (toast::Exception e) {
-        std::cout << e.what() << std::endl;
-    }
+    // } catch (toast::Exception e) {
+        // std::cout << e.what() << std::endl;
+    // }
 }
 
 t_vm::Runner::Runner(std::vector<toast::Instruction> instructions) {
@@ -78,7 +78,19 @@ t_vm::State* t_vm::Runner::push_state(toast::StateTypeHolder type) {
 t_vm::State* t_vm::Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    std::cout << "Popped state of type " << state->get_type().get_main_type() << std::endl;
+    std::cout << "Popped state of type " << state->get_type().get_main_type();
+    switch (state->get_type().get_main_type()) {
+        case toast::INT:
+            std::cout << " and value " << state->get_value<int>();
+            break;
+        case toast::BOOL:
+            std::cout << " and value " << state->get_value<bool>();
+            break;
+        case toast::STRING:
+            std::cout << " and value " << state->get_value<std::string>();
+            break;
+    }
+    std::cout << std::endl;
     return state;
 }
 
@@ -90,7 +102,11 @@ void t_vm::Runner::handle_instruction() {
     switch (type) {
         case toast::PUSH: {
             toast::StateTypeHolder type = toast::StateTypeHolder(args);
-            push_state(type);
+            State* state = push_state(type);
+            if (type.equals(toast::ARRAY)) {
+                StateArray* array = new StateArray();
+                state->set_value<StateArray*>(array);
+            }
         } break;
         case toast::POP: {
             delete pop_state();
@@ -109,9 +125,6 @@ void t_vm::Runner::handle_instruction() {
                 } break;
                 case toast::STRING: {
                     state->set_value<std::string>(instruction.get_string());
-                } break;
-                case toast::ARRAY: {
-                    state->set_value<int>(0);
                 } break;
                 default: {
                     throw toast::Exception("No support for type");
@@ -203,6 +216,57 @@ void t_vm::Runner::handle_instruction() {
             if (val) {
                 position++;
             }
+            state->clean();
+        } break;
+        case toast::LENGTH: {
+            State* move_into = get_state(args[0], args[1]);
+            State* state = get_state(args[2], args[3]);
+            switch (state->get_type().get_main_type()) {
+                case toast::STRING: {
+                    std::string string = state->get_value<std::string>();
+                    move_into->set_value<int>(string.size());
+                } break;
+                case toast::ARRAY: {
+                    StateArray* array = state->get_value<StateArray*>();
+                    move_into->set_value<int>(array->get_length());
+                } break;
+            }
+            state->clean();
+        } break;
+        case toast::STREAM_IN: {
+            State* stream_into = get_state(args[0], args[1]);
+            State* stream_from = get_state(args[2], args[3]);
+            switch (stream_into->get_type().get_main_type()) {
+                case toast::STRING: {
+
+                } break;
+                case toast::ARRAY: {
+                    StateArray* array = stream_into->get_value<StateArray*>();
+                    // make a clone because if the state gets popped out of scope bad things will happen
+                    State* state_clone = stream_from->clone();
+                    array->push_state(state_clone);
+                } break;
+                default: {
+                    StateArray* array = stream_from->get_value<StateArray*>();
+                    stream_into->move_value_from(array->get_back());
+                } break;
+            }
+            stream_from->clean();
+        } break;
+        case toast::STREAM_OUT: {
+            State* stream_from = get_state(args[0], args[1]);
+            bool has_stream_into = false;
+            State* stream_into;
+            if (args.size() > 2) {
+                has_stream_into = true;
+                stream_into = get_state(args[2], args[3]);
+            }
+            StateArray* array = stream_from->get_value<StateArray*>();
+            State* state = array->pop_state();
+            if (has_stream_into) {
+                stream_into->move_value_from(state);
+            }
+            delete state;
         } break;
         default: {
             throw toast::Exception("No support for instruction");
@@ -211,6 +275,7 @@ void t_vm::Runner::handle_instruction() {
 }
 
 t_vm::State::State(toast::StateTypeHolder type) {
+    has_value = false;
     temp = false;
     this->type.push_back(type);
 }
@@ -360,4 +425,41 @@ void t_vm::State::clean() {
     if (temp) {
         delete this;
     }
+}
+
+t_vm::StateArray::StateArray() {
+    
+}
+
+t_vm::StateArray::~StateArray() {
+    
+}
+
+int t_vm::StateArray::get_length() {
+    return states.size();
+}
+
+void t_vm::StateArray::push_state(State* state) {
+    states.push_back(state);
+}
+
+t_vm::State* t_vm::StateArray::get_back() {
+    return states.back();
+}
+
+t_vm::State* t_vm::StateArray::pop_state() {
+    State* state = states.back();
+    states.pop_back();
+    return state;
+}
+
+t_vm::State* t_vm::State::clone() {
+    State* clone = new State(get_type());
+    clone->set_temp(temp);
+    clone->move_value_from(this);
+    return clone;
+}
+
+bool t_vm::State::is_empty() {
+    return has_value;
 }

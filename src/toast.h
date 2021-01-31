@@ -61,7 +61,11 @@ namespace toast {
         DIVIDE,
         EQUALS,
         IF,
-        ELSE
+        LENGTH,
+        STREAM_IN,
+        STREAM_OUT,
+        MOVE_IN,
+        MOVE_OUT
     };
 
     class Instruction {

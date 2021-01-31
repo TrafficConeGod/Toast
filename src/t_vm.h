@@ -30,6 +30,23 @@ namespace t_vm {
             bool equals(State* state);
             void set_temp(bool temp);
             void clean();
+            State* clone();
+            bool is_empty();
+    };
+
+    class StateArray {
+        private:
+            std::vector<State*> states_holding;
+            std::vector<State*> states;
+        public:
+            ~StateArray();
+            StateArray();
+            int get_length();
+            void push_state(State* state);
+            State* get_back();
+            State* pop_state();
+            void set_state(int index, State* state);
+            State* get_state(int index);
     };
 
     class Stack {

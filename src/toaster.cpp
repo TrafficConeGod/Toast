@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     instructions.push_back(toast::Instruction(toast::SET, { -1, 0 }));
     instructions.push_back(toast::Instruction(toast::SKIP, { 6 }));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
-    instructions.push_back(toast::Instruction(toast::ARG, { 1, 0 }));
+    instructions.push_back(toast::Instruction(toast::ARG, { -2, 0 }));
     instructions.push_back(toast::Instruction(toast::RETURN, { toast::BOOL, 1 }));
     instructions.push_back(toast::Instruction(toast::POP, {  }));
     instructions.push_back(toast::Instruction(toast::BACK, {  }));
@@ -57,6 +57,16 @@ int main(int argc, char** argv) {
     instructions.push_back(toast::Instruction(toast::SKIP, { 3 }));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
     instructions.push_back(toast::Instruction(toast::SET, { -1, 0, 25 }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
+    instructions.push_back(toast::Instruction(toast::PUSH, { toast::ARRAY, 1, toast::INT }));
+    instructions.push_back(toast::Instruction(toast::STREAM_IN, { -1, 0, toast::INT, 10 }));
+    instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
+    instructions.push_back(toast::Instruction(toast::STREAM_IN, { -1, 0, -1, 1 }));
+    instructions.push_back(toast::Instruction(toast::STREAM_OUT, { -1, 1 }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
     instructions.push_back(toast::Instruction(toast::POP, {  }));
     instructions.push_back(toast::Instruction(toast::POP, {  }));
     t_vm::execute(instructions);

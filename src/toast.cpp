@@ -107,6 +107,21 @@ std::string toast::make_human_readable(Instruction instruction) {
         case IF:
             stream << "IF";
             break;
+        case LENGTH:
+            stream << "LENGTH";
+            break;
+        case STREAM_IN:
+            stream << "STREAM_IN";
+            break;
+        case STREAM_OUT:
+            stream << "STREAM_OUT";
+            break;
+        case MOVE_IN:
+            stream << "MOVE_IN";
+            break;
+        case MOVE_OUT:
+            stream << "MOVE_OUT";
+            break;
         default:
             throw Exception("No name for instruction type");
     }

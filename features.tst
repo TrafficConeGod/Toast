@@ -13,5 +13,6 @@ if (some_function(20) == false) {
 }
 
 int[] x = []
-10 >> x
-x[#x] = 25
+x << 10
+int y << x
+x >>
