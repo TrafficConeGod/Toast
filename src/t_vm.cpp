@@ -197,6 +197,13 @@ void t_vm::Runner::handle_instruction() {
             }
             move_into->set_value<int>(val);
         } break;
+        case toast::IF: {
+            State* state = get_state(args[0], args[1]);
+            bool val = state->get_value<bool>();
+            if (val) {
+                position++;
+            }
+        } break;
         default: {
             throw toast::Exception("No support for instruction");
         } break;

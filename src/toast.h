@@ -59,7 +59,8 @@ namespace toast {
         SUBTRACT,
         MULTIPLY,
         DIVIDE,
-        EQUALS
+        EQUALS,
+        IF
     };
 
     class Instruction {

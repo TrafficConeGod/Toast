@@ -104,6 +104,9 @@ std::string toast::make_human_readable(Instruction instruction) {
         case EQUALS:
             stream << "EQUALS";
             break;
+        case IF:
+            stream << "IF";
+            break;
         default:
             throw Exception("No name for instruction type");
     }
