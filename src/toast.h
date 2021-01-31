@@ -54,7 +54,13 @@ namespace toast {
         SKIP,
         ARG,
         RETURN,
-        MOVE_RETURN
+        MOVE_RETURN,
+        MOVE_MATH,
+        ADD,
+        SUBTRACT,
+        MULTIPLY,
+        DIVIDE,
+        EQUALS
     };
 
     class Instruction {

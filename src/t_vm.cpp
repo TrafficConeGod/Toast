@@ -9,6 +9,7 @@ void t_vm::execute(std::vector<toast::Instruction> instructions) {
 }
 
 t_vm::Runner::Runner(std::vector<toast::Instruction> instructions) {
+    math_state = new State(toast::StateTypeHolder(toast::INT));
     set_frame(0, true);
     this->instructions = instructions;
     for (position = 0; position < instructions.size(); position++) {
@@ -106,7 +107,7 @@ void t_vm::Runner::handle_instruction() {
             return_stack.push_back(position);
             position = state->get_value<int>();
             for (int i = 2; i < args.size(); i += 2) {
-                State* arg_state = get_state(args[i], args[i + 2]);
+                State* arg_state = get_state(args[i], args[i + 1]);
                 call_args.push_back(arg_state);
             }
         } break;
@@ -137,6 +138,33 @@ void t_vm::Runner::handle_instruction() {
         case toast::MOVE_RETURN: {
             State* move_to = get_state(args[0], args[1]);
             move_to->move_value_from(return_state);
+        } break;
+        case toast::EQUALS: {
+            State* move_into = get_state(args[0], args[1]);
+            State* equals_1 = get_state(args[2], args[3]);
+            State* equals_2 = get_state(args[4], args[5]);
+            move_into->set_value<bool>(equals_1->equals(equals_2));
+        } break;
+        case toast::MOVE_MATH: {
+            State* move_to = get_state(args[0], args[1]);
+            move_to->move_value_from(math_state);
+        } break;
+        case toast::ADD:
+        case toast::SUBTRACT:
+        case toast::MULTIPLY:
+        case toast::DIVIDE: {
+            int val = 0;
+            for (int i = 0; i < args.size(); i += 2) {
+                State* op_state = get_state(args[i], args[i + 1]);
+                int op_val = op_state->get_value<int>();
+                switch (type) {
+                    case toast::ADD: val += op_state->get_value<int>(); break;
+                    case toast::SUBTRACT: val -= op_state->get_value<int>(); break;
+                    case toast::MULTIPLY: val *= op_state->get_value<int>(); break;
+                    case toast::DIVIDE: val /= op_state->get_value<int>(); break;
+                }
+            }
+            math_state->set_value<int>(val);
         } break;
         default: {
             throw toast::Exception("No support for instruction");
@@ -254,4 +282,9 @@ std::any t_vm::State::get_value_any() {
 
 void t_vm::State::move_value_from(State* state) {
     value = state->get_value_any();
+}
+
+bool t_vm::State::equals(State* state) {
+    return false;
+    // return value == state->get_value_any();
 }

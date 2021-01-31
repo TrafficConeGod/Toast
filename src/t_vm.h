@@ -25,6 +25,7 @@ namespace t_vm {
             // void set_value(std::vector<int> val);
             // void set_value(int val);
             std::string get_cpp_string();
+            bool equals(State* state);
     };
 
     class Stack {
@@ -62,6 +63,7 @@ namespace t_vm {
             std::vector<int> return_stack;
             std::deque<State*> call_args;
             State* return_state;
+            State* math_state;
         public:
             Runner(std::vector<toast::Instruction>);
             ~Runner();

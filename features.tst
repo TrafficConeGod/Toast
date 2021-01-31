@@ -1,4 +1,5 @@
 int num = 10
+num += 35
 string str = "Hello world!"
 bool some_function(int arg) {
     return true
