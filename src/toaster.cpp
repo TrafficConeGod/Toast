@@ -42,11 +42,8 @@ int main(int argc, char** argv) {
     instructions.push_back(toast::Instruction(toast::POP, {  }));
     instructions.push_back(toast::Instruction(toast::BACK, {  }));
     instructions.push_back(toast::Instruction(toast::EXIT, {  }));
-    instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
-    instructions.push_back(toast::Instruction(toast::SET, { -1, 0, 20 }));
     instructions.push_back(toast::Instruction(toast::FRAME, { 1 }));
-    instructions.push_back(toast::Instruction(toast::CALL, { -1, 1, -1, 0 }));
-    instructions.push_back(toast::Instruction(toast::POP, {  }));
+    instructions.push_back(toast::Instruction(toast::CALL, { -1, 0, toast::INT, 20 }));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::BOOL }));
     instructions.push_back(toast::Instruction(toast::PUSH, { toast::BOOL }));
     instructions.push_back(toast::Instruction(toast::MOVE_RETURN, { -1, 0 }));
