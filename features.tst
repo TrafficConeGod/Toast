@@ -8,6 +8,8 @@ bool some_function(int arg) {
 if (some_function(20) == false) {
     int a = 30
     // well this wont actually execute
+} else {
+    int b = 25
 }
 
 int[] x = []

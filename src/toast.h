@@ -60,7 +60,8 @@ namespace toast {
         MULTIPLY,
         DIVIDE,
         EQUALS,
-        IF
+        IF,
+        ELSE
     };
 
     class Instruction {
