@@ -268,6 +268,15 @@ void t_vm::Runner::handle_instruction() {
             }
             delete state;
         } break;
+        case toast::DELETE: {
+            State* state = get_state(args[0], args[1]);
+            switch (state->get_type().get_main_type()) {
+                case toast::ARRAY: {
+                    StateArray* array = state->get_value<StateArray*>();
+                    delete array;
+                } break;
+            }
+        } break;
         default: {
             throw toast::Exception("No support for instruction");
         } break;

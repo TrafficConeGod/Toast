@@ -122,6 +122,9 @@ std::string toast::make_human_readable(Instruction instruction) {
         case MOVE_OUT:
             stream << "MOVE_OUT";
             break;
+        case DELETE:
+            stream << "DELETE";
+            break;
         default:
             throw Exception("No name for instruction type");
     }

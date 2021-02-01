@@ -15,4 +15,6 @@ if (some_function(20) == false) {
 int[] x = []
 x << 10
 int y << x
+int z = #x
 x >>
+delete x

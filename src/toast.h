@@ -65,7 +65,8 @@ namespace toast {
         STREAM_IN,
         STREAM_OUT,
         MOVE_IN,
-        MOVE_OUT
+        MOVE_OUT,
+        DELETE
     };
 
     class Instruction {
