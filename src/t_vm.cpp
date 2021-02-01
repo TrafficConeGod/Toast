@@ -238,7 +238,12 @@ void t_vm::Runner::handle_instruction() {
             State* stream_from = get_state(args[2], args[3]);
             switch (stream_into->get_type().get_main_type()) {
                 case toast::STRING: {
-
+                    std::stringstream stream;
+                    std::string into = stream_into->get_value<std::string>();
+                    std::string from = stream_from->get_value<std::string>();
+                    stream << into;
+                    stream << from;
+                    stream_into->set_value<std::string>(stream.str());
                 } break;
                 case toast::ARRAY: {
                     StateArray* array = stream_into->get_value<StateArray*>();

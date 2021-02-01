@@ -67,6 +67,10 @@ int main(int argc, char** argv) {
     instructions.push_back(toast::Instruction(toast::LENGTH, { -1, 0, -1, 2 }));
     instructions.push_back(toast::Instruction(toast::STREAM_OUT, { -1, 2 }));
     instructions.push_back(toast::Instruction(toast::DELETE, { -1, 2 }));
+    instructions.push_back(toast::Instruction(toast::PUSH, { toast::STRING }));
+    instructions.push_back(toast::Instruction(toast::SET, { -1, 0 }, " Goodbye world!"));
+    instructions.push_back(toast::Instruction(toast::STREAM_IN, { -1, 5, -1, 0 }));
+    instructions.push_back(toast::Instruction(toast::POP, {  }));
     instructions.push_back(toast::Instruction(toast::POP, {  }));
     instructions.push_back(toast::Instruction(toast::POP, {  }));
     instructions.push_back(toast::Instruction(toast::POP, {  }));
