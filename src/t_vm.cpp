@@ -201,10 +201,10 @@ void t_vm::Runner::handle_instruction() {
                 State* op_state = get_state(args[i], args[i + 1]);
                 int op_val = op_state->get_value<int>();
                 switch (type) {
-                    case toast::ADD: val += op_state->get_value<int>(); break;
-                    case toast::SUBTRACT: val -= op_state->get_value<int>(); break;
-                    case toast::MULTIPLY: val *= op_state->get_value<int>(); break;
-                    case toast::DIVIDE: val /= op_state->get_value<int>(); break;
+                    case toast::ADD: val += op_val; break;
+                    case toast::SUBTRACT: val -= op_val; break;
+                    case toast::MULTIPLY: val *= op_val; break;
+                    case toast::DIVIDE: val /= op_val; break;
                 }
                 op_state->clean();
             }
