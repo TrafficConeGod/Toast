@@ -18,3 +18,4 @@ int y << x
 int z = #x
 x >>
 delete x
+str << " Goodbye world!"
