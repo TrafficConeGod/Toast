@@ -225,15 +225,16 @@ void t_cmp::Builder::set_var(std::string name, Token token) {
     if (state->get_type().equals(toast::VOID)) {
         throw toast::Exception("Can not set void");
     }
-    if (state->get_type().equals(toast::FUNC)) {
-        toast::Instruction set_instruction = toast::Instruction(toast::SET, { state->get_stack_frame(), 0 });
+    int into_offset = get_var_offset(name);
+    if (state->get_type().equals(toast::FUNC) && token.get_type() == ILLEGAL) {
+        toast::Instruction set_instruction = toast::Instruction(toast::SET, { state->get_stack_frame_in_instruction(), into_offset });
         instructions.push_back(set_instruction);
         toast::Instruction skip_instruction = toast::Instruction(toast::SKIP, { });
         instructions.push_back(skip_instruction);
     } else {
         if (token.get_type() == VAL) {
             int parsed_val = t_cmp::parse_val(token.get_literal(), state->get_type());
-            toast::Instruction set_instruction = toast::Instruction(toast::SET, { state->get_stack_frame(), 0, parsed_val });
+            toast::Instruction set_instruction = toast::Instruction(toast::SET, { state->get_stack_frame_in_instruction(), into_offset, parsed_val });
             instructions.push_back(set_instruction);
         } else {
             if (token.get_type() != VAL && token.get_type() != IDENT) {
@@ -247,8 +248,8 @@ void t_cmp::Builder::set_var(std::string name, Token token) {
             if (!var->get_type().equals(state->get_type())) {
                 throw toast::Exception("Needs to be the same type");
             }
-            int offset = get_var_offset(name);
-            toast::Instruction move_instruction = toast::Instruction(toast::MOVE, { state->get_stack_frame(), 0, var->get_stack_frame(), offset });
+            int from_offset = get_var_offset(name);
+            toast::Instruction move_instruction = toast::Instruction(toast::MOVE, { state->get_stack_frame_in_instruction(), into_offset, var->get_stack_frame_in_instruction(), from_offset });
             instructions.push_back(move_instruction);
         }
     }
@@ -259,7 +260,7 @@ void t_cmp::Builder::call_function(std::string name) {
     int offset = get_var_offset(name);
     toast::Instruction frame_instruction = toast::Instruction(toast::FRAME, { state->get_stack_frame() + 1 });
     instructions.push_back(frame_instruction);
-    toast::Instruction call_instruction = toast::Instruction(toast::CALL, { state->get_stack_frame(), offset });
+    toast::Instruction call_instruction = toast::Instruction(toast::CALL, { state->get_stack_frame_in_instruction(), offset });
     instructions.push_back(call_instruction);
     position += 2;
 }
@@ -678,4 +679,8 @@ t_cmp::Scope::~Scope() {
     for (State* state : state_stack) {
         delete state;
     }
+}
+
+int t_cmp::State::get_stack_frame_in_instruction() {
+    return (stack_frame * -1) - 1;
 }

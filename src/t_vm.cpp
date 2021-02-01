@@ -103,10 +103,6 @@ void t_vm::Runner::handle_instruction() {
         case toast::PUSH: {
             toast::StateTypeHolder type = toast::StateTypeHolder(args);
             State* state = push_state(type);
-            if (type.equals(toast::ARRAY)) {
-                StateArray* array = new StateArray();
-                state->set_value<StateArray*>(array);
-            }
         } break;
         case toast::POP: {
             delete pop_state();
@@ -126,11 +122,15 @@ void t_vm::Runner::handle_instruction() {
                 case toast::STRING: {
                     state->set_value<std::string>(instruction.get_string());
                 } break;
+                case toast::ARRAY: {
+                    StateArray* array = new StateArray();
+                    state->set_value<StateArray*>(array);
+                } break;
                 default: {
                     throw toast::Exception("No support for type");
                 } break;
             }
-            state->clean();
+            // state->clean();
         } break;
         case toast::SKIP: {
             position += args[0];

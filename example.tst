@@ -1,12 +1,4 @@
-{
-    int y = 20
-    void test() {
-        int x = 50
-        void testing() {
-            int a = x
-        }
-        testing()
-    }
-
-    test()
-}
+void a() { int c = 20 }
+void b() { int c = 30 }
+a = b
+a()

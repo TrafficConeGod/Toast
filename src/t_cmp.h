@@ -56,6 +56,7 @@ namespace t_cmp {
             void set_stack_frame();
             toast::StateTypeHolder get_type();
             int get_stack_frame();
+            int get_stack_frame_in_instruction();
     };
 
     enum ScopeType {
