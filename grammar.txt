@@ -1,0 +1,42 @@
+Script: repeat Statement until EOF
+
+Statement: '{' repeat Statement until '}' // Compound statement
+Statement: 'if' '(' Expression ')' Statement // If statement
+Statement: 'while' '(' Expression ')' Statement // While statement
+Statement: 'return' Expression END // Return statement
+Statement: TypeExpression IDENTIFIER '(' repeat TypeExpression Expression ',' until ')' Statement
+Statement: TypeExpression IDENTIFIER '(' repeat TypeExpression Expression ',' until ')' END
+Statement: TypeExpression IDENTIFIER '=' Expression END // Variable declare and assign statement
+Statement: TypeExpression IDENTIFIER END // Variable declare statement
+Statement: IDENTIFIER '=' Expression END // Variable set statement
+Statement: IDENTIFIER '<<' Expression END // Stream into statement
+Statement: Expression '>>' IDENTIFIER END // Stream out to statement
+Statement: Expression '>>' END // Stream out statement
+Statement: IDENTIFIER '+=' Expression END
+Statement: IDENTIFIER '-=' Expression END
+Statement: IDENTIFIER '*=' Expression END
+Statement: IDENTIFIER '/=' Expression ENd
+Statement: IDENTIFIER '++' END
+Statement: IDENTIFIER '--' END
+
+Expression: INT_LITERAL
+Expression: BOOL_LITERAL
+Expression: STR_LITERAL
+Expression: IDENTIFIER
+Expression: '(' Expression ')'
+Expression: Expression '[' Expression ']' // Array index expression
+Expression: Expression '(' repeat Expression ',' until ')' // Function call expression
+Expression: TypeExpression '(' repeat TypeExpression Expression ',' until ')' Statement // Function expression
+Expression: Expression '+' Expression
+Expression: Expression '-' Expression
+Expression: Expression '*' Expression
+Expression: Expression '/' Expression
+Expression: Expression '==' Expression
+Expression: Expression '!=' Expression
+Expression: Expression '&&' Expression
+Expression: Expression '||' Expression
+Expression: '!' Expression
+
+TypeExpression: TYPE_IDENTIFIER
+TypeExpression: TypeExpression '[' ']' // Array type expression
+TypeExpression: TypeExpression '<' repeat TypeExpression ',' until '>' // Generics type expression

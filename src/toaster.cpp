@@ -17,16 +17,18 @@ std::string read_file(std::string path) {
 }
 
 int main(int argc, char** argv) {
-    // if (argc < 2) {
-        // throw toast::Exception("Not enough args");
-    // }
+    if (argc < 2) {
+        throw toast::Exception("Not enough args");
+    }
     char* path = argv[1];
     std::string source = read_file(path);
     std::vector<toast::Instruction> instructions = t_cmp::generate_instruction_list(source);
     std::string toasted = t_cmp::make_human_readable(instructions);
     std::cout << toasted << std::endl;
     t_vm::execute(instructions);
-    // t_cmp::delete_instruction_list(instructions);
+
+
+
     // std::vector<toast::Instruction> instructions;
     // instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
     // instructions.push_back(toast::Instruction(toast::SET, { -1, 0, 10 }));
@@ -60,6 +62,7 @@ int main(int argc, char** argv) {
     // instructions.push_back(toast::Instruction(toast::POP, {  }));
     // instructions.push_back(toast::Instruction(toast::POP, {  }));
     // instructions.push_back(toast::Instruction(toast::PUSH, { toast::ARRAY, 1, toast::INT }));
+    // instructions.push_back(toast::Instruction(toast::SET, { -1, 0 }));
     // instructions.push_back(toast::Instruction(toast::STREAM_IN, { -1, 0, toast::INT, 10 }));
     // instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
     // instructions.push_back(toast::Instruction(toast::STREAM_IN, { -1, 0, -1, 1 }));
