@@ -229,7 +229,7 @@ class Lexer {
                             return;
                         }
                         literal = get_source_until_non_letter();
-                        if (literal == "int" || literal == "bool" || literal == "void" || literal == "array" || literal == "function") {
+                        if (literal == "int" || literal == "bool" || literal == "string" || literal == "void" || literal == "array" || literal == "function") {
                             type = TYPE_IDENT;
                         } else if (literal == "true" || literal == "false") {
                             type = BOOL_LITERAL;
