@@ -36,6 +36,7 @@ Expression: Expression '!=' Expression
 Expression: Expression '&&' Expression
 Expression: Expression '||' Expression
 Expression: '!' Expression
+Expression: '#' Expression // Length expression
 
 TypeExpression: TYPE_IDENTIFIER
 TypeExpression: TypeExpression '[' ']' // Array type expression
