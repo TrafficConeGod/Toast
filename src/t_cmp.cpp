@@ -2,8 +2,17 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <deque>
 #include <sstream>
 
+class CompilerException : public std::exception {
+    private:
+    public:
+        CompilerException() {}
+        const char* what() const throw() {
+            return "Compiler error";
+        }
+};
 
 enum TokenType {
     ILLEGAL,
@@ -15,10 +24,10 @@ enum TokenType {
     STR_LITERAL,
     ARRAY_LITERAL,
 
-    IF,
-    ELSE,
-    WHILE,
-    RETURN,
+    IF_WORD,
+    ELSE_WORD,
+    WHILE_WORD,
+    RETURN_WORD,
 
     LEFT_PAREN,
     RIGHT_PAREN,
@@ -41,13 +50,13 @@ enum TokenType {
     OVER_EQUALS,
     DOUBLE_PLUS,
     DOUBLE_MINUS,
-    STREAM_IN,
-    STREAM_OUT,
+    INTO,
+    OUTOF,
     DOUBLE_EQUALS,
     DOUBLE_AMPERSAND,
     DOUBLE_VERT_BAR,
     EXCLAMATION,
-    LENGTH
+    HASH
 };
 
 class Token {
@@ -71,7 +80,7 @@ class Lexer {
     private:
         int position = 0;
         std::string source;
-        std::vector<Token> tokens;
+        std::deque<Token> tokens;
         void handle_char() {
             char ch = source[position];
             char next_ch = ' ';
@@ -117,12 +126,12 @@ class Lexer {
                     type = EXCLAMATION;
                     break;
                 case '#':
-                    type = LENGTH;
+                    type = HASH;
                     break;
                 case '<':
                     if (next_ch == '<') {
                         literal = "<<";
-                        type = STREAM_IN;
+                        type = INTO;
                         position++;
                         break;
                     }
@@ -131,7 +140,7 @@ class Lexer {
                 case '>':
                     if (next_ch == '>') {
                         literal = ">>";
-                        type = STREAM_OUT;
+                        type = OUTOF;
                         position++;
                         break;
                     }
@@ -234,11 +243,11 @@ class Lexer {
                         } else if (literal == "true" || literal == "false") {
                             type = BOOL_LITERAL;
                         } else if (literal == "return") {
-                            type = RETURN;
+                            type = RETURN_WORD;
                         } else if (literal == "if") {
-                            type = IF;
+                            type = IF_WORD;
                         } else if (literal == "while") {
-                            type = WHILE;
+                            type = WHILE_WORD;
                         } else {
                             type = IDENT;
                         }
@@ -253,7 +262,8 @@ class Lexer {
                 } break;
             }
             if (type == ILLEGAL) {
-                throw toast::Exception("Illegal token");
+                std::cout << "Illegal token " << literal << "at: " << position << std::endl;
+                throw CompilerException();
             }
             Token token = Token(type, literal);
             tokens.push_back(token);
@@ -317,7 +327,7 @@ class Lexer {
                 tokens.push_back(Token(FILE_END, ""));
             }
         }
-        std::vector<Token> get_tokens() {
+        std::deque<Token> get_tokens() {
             return tokens;
         }
 };
@@ -345,7 +355,7 @@ class State {
 
 enum ScopeType {
     GLOBAL,
-    FUNCTION,
+    FUNC,
     BLOCK
 };
 
@@ -398,15 +408,213 @@ class Scope {
         }
 };
 
+enum ScriptType {
+    RUNNABLE
+};
+
+enum StatementType {
+    COMPOUND,
+    IF,
+    WHILE,
+    RETURN,
+    FUNCTION_DECLARE,
+    FUNCTION_CREATE,
+    VAR_DECLARE,
+    VAR_CREATE,
+    VAR_SET,
+    STREAM_INTO,
+    STREAM_OUT,
+    ADD_SET,
+    SUBTRACT_SET,
+    MULTIPLY_SET,
+    DIVIDE_SET,
+    INCREMENT,
+    DECREMENT
+};
+
+enum ExpressionType {
+    INT,
+    BOOL,
+    STRING,
+    IDENTIFIER,
+    PAREN,
+    ARRAY_INDEX,
+    FUNCTION_CALL,
+    FUNCTION,
+    ADD,
+    SUBTRACT,
+    MULTIPLY,
+    DIVIDE,
+    IS,
+    NOT_IS,
+    AND,
+    OR,
+    NOT,
+    LENGTH
+};
+
+void expected(std::string expected, std::string actual) {
+    std::cout << "Expected " << expected << " but got " << actual << " instead" << std::endl;
+    throw CompilerException();
+}
+
+class Statement;
+class Expression;
+
+class Expression {
+    private:
+        ExpressionType type;
+        std::vector<Statement> statements;
+    public:
+        Expression(std::deque<Token>* tokens) {
+            tokens->pop_front();
+        }
+        ExpressionType get_type() {
+            return type;
+        }
+};
+
+class TypeExpression {
+    private:
+        std::vector<toast::StateTypeHolder> type;
+    public:
+        TypeExpression(std::deque<Token>* tokens) {
+            Token token = tokens->front();
+            std::string literal = token.get_literal();
+            type.push_back(toast::StateTypeHolder(toast::INT));
+            tokens->pop_front();
+        }
+        toast::StateTypeHolder get_type() {
+            return type.back();
+        }
+};
+
+class Statement {
+    private:
+        StatementType type;
+        std::vector<Statement> statements;
+        std::vector<TypeExpression> type_expressions;
+        std::vector<Expression> expressions;
+    public:
+        Statement(std::deque<Token>* tokens) {
+            Token token = tokens->front();
+            switch (token.get_type()) {
+                // Compound
+                case LEFT_BRACE: {
+                    type = COMPOUND;
+                    do {
+                        Token token = tokens->front();
+                        statements.push_back(Statement(tokens));
+                    } while (tokens->front().get_type() != RIGHT_BRACE);
+                } break;
+                // If statement
+                case IF_WORD: {
+                    type = IF;
+                    tokens->pop_front();
+                    Token left_paren = tokens->front();
+                    if (left_paren.get_type() != LEFT_PAREN) {
+                        expected("(", left_paren.get_literal());
+                    }
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
+                    Token right_paren = tokens->front();
+                    if (right_paren.get_type() != RIGHT_PAREN) {
+                        expected(")", right_paren.get_literal());
+                    }
+                    tokens->pop_front();
+                    statements.push_back(Statement(tokens));
+                } break;
+                // type ident = expression
+                case TYPE_IDENT: {
+                    type_expressions.push_back(TypeExpression(tokens));
+                    Token ident = tokens->front();
+                    if (ident.get_type() != IDENT) {
+                        expected("identifier", ident.get_literal());
+                    }
+                    tokens->pop_front();
+                    Token equals = tokens->front();
+                    if (equals.get_type() == NEW_LINE || equals.get_type() == FILE_END) {
+                        type = VAR_DECLARE;
+                        break;
+                    }
+                    type = VAR_CREATE;
+                    if (equals.get_type() != EQUALS) {
+                        expected("=", equals.get_literal());
+                    }
+                    tokens->pop_front();
+                    Expression expression = Expression(tokens);
+                    Token end = tokens->front();
+                    if (end.get_type() != NEW_LINE && end.get_type() != FILE_END) {
+                        expected("end", end.get_literal());
+                    }
+                } break;
+                // ident = expression OR ident += expression etc
+                case IDENT: {
+
+                } break;
+                case FILE_END:
+                case NEW_LINE: {
+                } break;
+                default: {
+                    expected("statement", token.get_literal());
+                } break;
+            }
+            tokens->pop_front();
+        }
+        StatementType get_type() {
+            return type;
+        }
+        std::vector<Statement> get_statements() {
+            return statements;
+        }
+        std::vector<Expression> get_expressions() {
+            return expressions;
+        }
+        std::vector<TypeExpression> get_type_expressions() {
+            return type_expressions;
+        }
+};
+
+class Script {
+    private:
+        ScriptType type;
+        std::vector<Statement> statements;
+    public:
+        Script(std::deque<Token>* tokens) {
+            type = RUNNABLE;
+            while (tokens->size() != 0 && tokens->front().get_type() != FILE_END) {
+                Token token = tokens->front();
+                statements.push_back(Statement(tokens));
+                Statement statement = statements.back();
+                std::cout << statement.get_type() << std::endl;
+                for (TypeExpression expression : statement.get_type_expressions()) {
+                    std::cout << expression.get_type().get_main_type() << std::endl;
+                }
+            }
+        }
+};
+
+class Parser {
+    private:
+        std::deque<Token> tokens;
+    public:
+        Parser(std::deque<Token> tokens) {
+            this->tokens = tokens;
+            Script script = Script(&tokens);
+        }
+        ~Parser() {
+
+        }
+};
 
 class Builder {
     private:
-        std::vector<Token> tokens;
+        std::deque<Token> tokens;
         std::vector<toast::Instruction> instructions;
         std::vector<Scope*> scope_stack;
         int stack_frame = 0;
     public:
-        Builder(std::vector<Token> tokens) {
+        Builder(std::deque<Token> tokens) {
             this->tokens = tokens;
             Scope* global_scope = new Scope(GLOBAL, stack_frame);
             scope_stack.push_back(global_scope);
@@ -430,13 +638,15 @@ class Builder {
 std::vector<toast::Instruction> t_cmp::generate_instruction_list(std::string source) {
     try {
         Lexer lexer = Lexer(source);
-        std::vector<Token> tokens = lexer.get_tokens();
-        for (Token token : tokens) {
-            std::cout << token.get_type() << " " << token.get_literal() << std::endl;
-        }
-        Builder builder = Builder(tokens);
-        std::vector<toast::Instruction> instructions = builder.get_instructions();
-        return instructions;
+        std::deque<Token> tokens = lexer.get_tokens();
+        // for (Token token : tokens) {
+        //     std::cout << token.get_type() << " " << token.get_literal() << std::endl;
+        // }
+        Parser parser = Parser(tokens);
+        return {};
+        // Builder builder = Builder(tokens);
+        // std::vector<toast::Instruction> instructions = builder.get_instructions();
+        // return instructions;
     } catch (toast::Exception e) {
         std::cout << std::endl << e.what() << std::endl;
         return {};
