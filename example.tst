@@ -1,21 +1,23 @@
 int num = 10
 num += 35
+num = num + 5
 string str = "Hello world!"
 bool something = true == false
 bool some_function(int arg) {
     return true
 }
 
-if some_function(20) == false {
-    int a = 30 + 10
+if some_function(30) == false {
+    int a = 30
 } else {
     int b = 25
 }
 
 int[] x = []
 x << 10
-int y << x
+int y
+y << x
 int z = #x
-x >>
+x >> a
 delete x
 str << " Goodbye world!"

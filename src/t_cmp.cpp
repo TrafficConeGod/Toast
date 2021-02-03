@@ -29,6 +29,7 @@ enum TokenType {
     ELSE_WORD,
     WHILE_WORD,
     RETURN_WORD,
+    DELETE_WORD,
 
     LEFT_PAREN,
     RIGHT_PAREN,
@@ -261,6 +262,8 @@ class Lexer {
                             type = ELSE_WORD;
                         } else if (literal == "while") {
                             type = WHILE_WORD;
+                        } else if (literal == "delete") {
+                            type = DELETE_WORD;
                         } else {
                             type = IDENT;
                         }
@@ -432,6 +435,7 @@ enum StatementType {
     ELSE_IF,
     WHILE,
     RETURN,
+    DELETE,
     FUNCTION_DECLARE,
     FUNCTION_CREATE,
     VAR_DECLARE,
@@ -487,25 +491,25 @@ class Expression {
         std::vector<Expression> expressions;
         std::vector<TypeExpression> type_expressions;
         void parse_middle(std::deque<Token>* tokens) {
-
             Token middle = tokens->front();
             TokenType middle_type = middle.get_type();
-            if (middle.is_end()) {
+            if (middle.is_end() || middle_type == LEFT_BRACE || middle_type == RIGHT_BRACE) {
                 return;
             }
             tokens->pop_front();
-            if (middle_type == RIGHT_PAREN || middle_type == COMMA || middle_type == LEFT_BRACE) {
+            if (middle_type == RIGHT_PAREN || middle_type == COMMA) {
                 return;
             }
             ExpressionType old_type = type;
             switch (middle.get_type()) {
                 case LEFT_PAREN: {
                     type = FUNCTION_CALL;
-                    do {
-                        Token token = tokens->front();
-                        expressions.push_back(Expression(tokens));
-                    } while (tokens->front().get_type() == COMMA && tokens->front().get_type() != RIGHT_PAREN);
-                    tokens->pop_front();
+                    if (tokens->front().get_type() != RIGHT_PAREN) {
+                        do {
+                            Token token = tokens->front();
+                            expressions.push_back(Expression(tokens));
+                        } while (tokens->front().get_type() == COMMA && tokens->front().get_type() != RIGHT_PAREN);
+                    }
                     parse_middle(tokens);
                     return;
                 }
@@ -561,18 +565,22 @@ class Expression {
                 // 10 20 34 193 etc
                 case INT_LITERAL: {
                     type = INT;
+                    tokens->pop_front();
                 } break;
                 // true false
                 case BOOL_LITERAL: {
                     type = BOOL;
+                    tokens->pop_front();
                 } break;
                 // "Hello world!"
                 case STR_LITERAL: {
                     type = STRING;
+                    tokens->pop_front();
                 } break;
                 // var_name
                 case IDENT: {
                     type = IDENTIFIER;
+                    tokens->pop_front();
                 } break;
                 // (expression)
                 case LEFT_PAREN: {
@@ -590,13 +598,15 @@ class Expression {
                 } break;
                 // [expression, expression]
                 case LEFT_BRACKET: {
-                    // visual studio code just deleted all of this fucking code so its probably fucking broken now
                     type = ARRAY;
                     tokens->pop_front();
-                    do {
-                        Token token = tokens->front();
-                        expressions.push_back(Expression(tokens));
-                    } while (tokens->front().get_type() == COMMA || tokens->front().get_type() == RIGHT_BRACKET);
+                    if (tokens->front().get_type() != RIGHT_BRACKET) {
+                        do {
+                            Token token = tokens->front();
+                            expressions.push_back(Expression(tokens));
+                        } while (tokens->front().get_type() == COMMA && tokens->front().get_type() != RIGHT_BRACKET);
+                    }
+                    tokens->pop_front();
                 } break;
                 // !expression
                 case EXCLAMATION: {
@@ -618,12 +628,12 @@ class Expression {
                 case FILE_END:
                 case NEW_LINE: {
                     type = EX_IGNORE;
+                    tokens->pop_front();
                 } break;
                 default: {
                     expected("expression", token.get_literal());
                 } break;
             }
-            tokens->pop_front();
             parse_middle(tokens);
         }
         ExpressionType get_type() {
@@ -647,8 +657,34 @@ class TypeExpression {
         TypeExpression(std::deque<Token>* tokens) {
             Token token = tokens->front();
             std::string literal = token.get_literal();
-            type.push_back(toast::StateTypeHolder(toast::INT));
+            if (literal == "int") {
+                type.push_back(toast::StateTypeHolder(toast::INT));
+            } else if (literal == "bool") {
+                type.push_back(toast::StateTypeHolder(toast::BOOL));
+            } else if (literal == "string") {
+                type.push_back(toast::StateTypeHolder(toast::STRING));
+            } else if (literal == "float") {
+                type.push_back(toast::StateTypeHolder(toast::FLOAT));
+            } else if (literal == "function") {
+                type.push_back(toast::StateTypeHolder(toast::FUNC));
+            } else if (literal == "array") {
+                type.push_back(toast::StateTypeHolder(toast::ARRAY));
+            }
+
+            toast::StateTypeHolder cur_type = get_type();
+
             tokens->pop_front();
+            Token next = tokens->front();
+            switch (next.get_type()) {
+                case LEFT_BRACKET: {
+                    tokens->pop_front();
+                    if (tokens->front().get_type() != RIGHT_BRACKET) {
+                        expected("]", tokens->front().get_literal());
+                    }
+                    tokens->pop_front();
+                    type = { toast::StateTypeHolder(toast::ARRAY, { cur_type }) };
+                } break;
+            }
         }
         toast::StateTypeHolder get_type() {
             return type.back();
@@ -690,16 +726,25 @@ class Statement {
                     if (next.get_type() == IF_WORD) {
                         type = ELSE_IF;
                         tokens->pop_front();
+                        expressions.push_back(Expression(tokens));
                     } else {
                         type = ELSE;
                     }
-                    tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
                     statements.push_back(Statement(tokens));
                 } break;
                 // Return statement
                 case RETURN_WORD: {
                     type = RETURN;
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
+                    Token end = tokens->front();
+                    if (!end.is_end()) {
+                        expected("end", end.get_literal());
+                    }
+                } break;
+                // Delete statement
+                case DELETE_WORD: {
+                    type = DELETE;
                     tokens->pop_front();
                     expressions.push_back(Expression(tokens));
                     Token end = tokens->front();
@@ -792,7 +837,9 @@ class Statement {
                             expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
                     }
                     tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
+                    if (!tokens->front().is_end()) {
+                        expressions.push_back(Expression(tokens));
+                    }
                 } break;
                 case FILE_END:
                 case NEW_LINE: {
@@ -803,15 +850,15 @@ class Statement {
                     expected("statement", token.get_literal());
                 } break;
             }
-            // std::cout << get_type() << " types: {";
-            // for (TypeExpression expression : get_type_expressions()) {
-            //     std::cout << " " << expression.get_type().get_main_type();
-            // }
-            // std::cout << " } expressions: {";
-            // for (Expression expression : get_expressions()) {
-            //     std::cout << " " << expression.get_type();
-            // }
-            // std::cout << " }" << std::endl;
+            std::cout << get_type() << " types: {";
+            for (TypeExpression expression : get_type_expressions()) {
+                std::cout << " " << expression.get_type().get_main_type();
+            }
+            std::cout << " } expressions: {";
+            for (Expression expression : get_expressions()) {
+                std::cout << " " << expression.get_type();
+            }
+            std::cout << " }" << std::endl;
         }
         StatementType get_type() {
             return type;
