@@ -4,6 +4,7 @@
 #include <vector>
 #include <deque>
 #include <sstream>
+#include <any>
 
 class CompilerException : public std::exception {
     private:
@@ -53,6 +54,7 @@ enum TokenType {
     INTO,
     OUTOF,
     DOUBLE_EQUALS,
+    EXCLAMATION_EQUALS,
     DOUBLE_AMPERSAND,
     DOUBLE_VERT_BAR,
     EXCLAMATION,
@@ -73,6 +75,9 @@ class Token {
         }
         std::string get_literal() {
             return literal;
+        }
+        bool is_end() {
+            return get_type() == NEW_LINE || get_type() == FILE_END || get_type() == ILLEGAL;
         }
 };
 
@@ -123,6 +128,12 @@ class Lexer {
                     type = COMMA;
                     break;
                 case '!':
+                    if (next_ch == '=') {
+                        literal = "!=";
+                        type = EXCLAMATION_EQUALS;
+                        position++;
+                        break;
+                    }
                     type = EXCLAMATION;
                     break;
                 case '#':
@@ -246,6 +257,8 @@ class Lexer {
                             type = RETURN_WORD;
                         } else if (literal == "if") {
                             type = IF_WORD;
+                        } else if (literal == "else") {
+                            type = ELSE_WORD;
                         } else if (literal == "while") {
                             type = WHILE_WORD;
                         } else {
@@ -415,6 +428,8 @@ enum ScriptType {
 enum StatementType {
     COMPOUND,
     IF,
+    ELSE,
+    ELSE_IF,
     WHILE,
     RETURN,
     FUNCTION_DECLARE,
@@ -429,13 +444,15 @@ enum StatementType {
     MULTIPLY_SET,
     DIVIDE_SET,
     INCREMENT,
-    DECREMENT
+    DECREMENT,
+    IGNORE
 };
 
 enum ExpressionType {
     INT,
     BOOL,
     STRING,
+    ARRAY,
     IDENTIFIER,
     PAREN,
     ARRAY_INDEX,
@@ -450,7 +467,8 @@ enum ExpressionType {
     AND,
     OR,
     NOT,
-    LENGTH
+    LENGTH,
+    EX_IGNORE
 };
 
 void expected(std::string expected, std::string actual) {
@@ -460,17 +478,165 @@ void expected(std::string expected, std::string actual) {
 
 class Statement;
 class Expression;
+class TypeExpression;
 
 class Expression {
     private:
         ExpressionType type;
         std::vector<Statement> statements;
-    public:
-        Expression(std::deque<Token>* tokens) {
+        std::vector<Expression> expressions;
+        std::vector<TypeExpression> type_expressions;
+        void parse_middle(std::deque<Token>* tokens) {
+
+            Token middle = tokens->front();
+            TokenType middle_type = middle.get_type();
+            if (middle.is_end()) {
+                return;
+            }
             tokens->pop_front();
+            if (middle_type == RIGHT_PAREN || middle_type == COMMA || middle_type == LEFT_BRACE) {
+                return;
+            }
+            ExpressionType old_type = type;
+            switch (middle.get_type()) {
+                case LEFT_PAREN: {
+                    type = FUNCTION_CALL;
+                    do {
+                        Token token = tokens->front();
+                        expressions.push_back(Expression(tokens));
+                    } while (tokens->front().get_type() == COMMA && tokens->front().get_type() != RIGHT_PAREN);
+                    tokens->pop_front();
+                    parse_middle(tokens);
+                    return;
+                }
+                case PLUS:
+                    type = ADD;
+                    break;
+                case MINUS:
+                    type = SUBTRACT;
+                    break;
+                case TIMES:
+                    type = MULTIPLY;
+                    break;
+                case OVER:
+                    type = DIVIDE;
+                    break;
+                case DOUBLE_EQUALS:
+                    type = IS;
+                    break;
+                case EXCLAMATION_EQUALS:
+                    type = NOT_IS;
+                    break;
+                case DOUBLE_AMPERSAND:
+                    type = AND;
+                    break;
+                case DOUBLE_VERT_BAR:
+                    type = OR;
+                    break;
+                case LEFT_BRACKET:
+                    if (tokens->front().get_type() != RIGHT_BRACKET) {
+                        expected("]", tokens->front().get_literal());
+                    }
+                    type = ARRAY_INDEX;
+                    break;
+                default:
+                    return;
+            }
+            Expression expression = Expression(type, statements, expressions, type_expressions);
+            statements = {};
+            expressions = { expression };
+            type_expressions = {};
+            expressions.push_back(Expression(tokens));
+        }
+    public:
+        Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions) {
+            this->type = type;
+            this->statements = statements;
+            this->expressions = expressions;
+            this->type_expressions = type_expressions;
+        }
+        Expression(std::deque<Token>* tokens) {
+            Token token = tokens->front();
+            switch (token.get_type()) {
+                // 10 20 34 193 etc
+                case INT_LITERAL: {
+                    type = INT;
+                } break;
+                // true false
+                case BOOL_LITERAL: {
+                    type = BOOL;
+                } break;
+                // "Hello world!"
+                case STR_LITERAL: {
+                    type = STRING;
+                } break;
+                // var_name
+                case IDENT: {
+                    type = IDENTIFIER;
+                } break;
+                // (expression)
+                case LEFT_PAREN: {
+                    tokens->pop_front();
+                    Expression expression = Expression(tokens);
+                    type = expression.get_type();
+                    statements = expression.get_statements();
+                    expressions = expression.get_expressions();
+                    type_expressions = expression.get_type_expressions();
+                    Token right_paren = tokens->front();
+                    if (right_paren.get_type() != RIGHT_PAREN) {
+                        expected(")", right_paren.get_literal());
+                    }
+                    tokens->pop_front();
+                } break;
+                // [expression, expression]
+                case LEFT_BRACKET: {
+                    // visual studio code just deleted all of this fucking code so its probably fucking broken now
+                    type = ARRAY;
+                    tokens->pop_front();
+                    do {
+                        Token token = tokens->front();
+                        expressions.push_back(Expression(tokens));
+                    } while (tokens->front().get_type() == COMMA || tokens->front().get_type() == RIGHT_BRACKET);
+                } break;
+                // !expression
+                case EXCLAMATION: {
+                    type = NOT;
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
+                } break;
+                // #expression
+                case HASH: {
+                    type = LENGTH;
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
+                } break;
+                // type(type identifier) {}
+                case TYPE_IDENT: {
+                    type = FUNCTION;
+                    // to be done later
+                } break;
+                case FILE_END:
+                case NEW_LINE: {
+                    type = EX_IGNORE;
+                } break;
+                default: {
+                    expected("expression", token.get_literal());
+                } break;
+            }
+            tokens->pop_front();
+            parse_middle(tokens);
         }
         ExpressionType get_type() {
             return type;
+        }
+        std::vector<Statement> get_statements() {
+            return statements;
+        }
+        std::vector<Expression> get_expressions() {
+            return expressions;
+        }
+        std::vector<TypeExpression> get_type_expressions() {
+            return type_expressions;
         }
 };
 
@@ -495,6 +661,7 @@ class Statement {
         std::vector<Statement> statements;
         std::vector<TypeExpression> type_expressions;
         std::vector<Expression> expressions;
+        std::vector<std::string> identifiers;
     public:
         Statement(std::deque<Token>* tokens) {
             Token token = tokens->front();
@@ -502,27 +669,43 @@ class Statement {
                 // Compound
                 case LEFT_BRACE: {
                     type = COMPOUND;
+                    tokens->pop_front();
                     do {
                         Token token = tokens->front();
                         statements.push_back(Statement(tokens));
                     } while (tokens->front().get_type() != RIGHT_BRACE);
+                    tokens->pop_front();
                 } break;
                 // If statement
                 case IF_WORD: {
                     type = IF;
                     tokens->pop_front();
-                    Token left_paren = tokens->front();
-                    if (left_paren.get_type() != LEFT_PAREN) {
-                        expected("(", left_paren.get_literal());
+                    expressions.push_back(Expression(tokens));
+                    statements.push_back(Statement(tokens));
+                } break;
+                // else if statement
+                case ELSE_WORD: {
+                    tokens->pop_front();
+                    Token next = tokens->front();
+                    if (next.get_type() == IF_WORD) {
+                        type = ELSE_IF;
+                        tokens->pop_front();
+                    } else {
+                        type = ELSE;
                     }
                     tokens->pop_front();
                     expressions.push_back(Expression(tokens));
-                    Token right_paren = tokens->front();
-                    if (right_paren.get_type() != RIGHT_PAREN) {
-                        expected(")", right_paren.get_literal());
-                    }
-                    tokens->pop_front();
                     statements.push_back(Statement(tokens));
+                } break;
+                // Return statement
+                case RETURN_WORD: {
+                    type = RETURN;
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
+                    Token end = tokens->front();
+                    if (!end.is_end()) {
+                        expected("end", end.get_literal());
+                    }
                 } break;
                 // type ident = expression
                 case TYPE_IDENT: {
@@ -531,35 +714,104 @@ class Statement {
                     if (ident.get_type() != IDENT) {
                         expected("identifier", ident.get_literal());
                     }
+                    identifiers.push_back(ident.get_literal());
                     tokens->pop_front();
-                    Token equals = tokens->front();
-                    if (equals.get_type() == NEW_LINE || equals.get_type() == FILE_END) {
+                    Token middle = tokens->front();
+                    if (middle.is_end()) {
                         type = VAR_DECLARE;
                         break;
                     }
-                    type = VAR_CREATE;
-                    if (equals.get_type() != EQUALS) {
-                        expected("=", equals.get_literal());
+                    if (middle.get_type() == LEFT_PAREN) {
+                        type = FUNCTION_DECLARE;
+                        tokens->pop_front();
+                        do {
+                            type_expressions.push_back(TypeExpression(tokens));
+                            Token ident = tokens->front();
+                            if (ident.get_type() != IDENT) {
+                                expected("identifier", ident.get_literal());
+                                throw CompilerException();
+                            }
+                            identifiers.push_back(ident.get_literal());
+                            tokens->pop_front();
+                            if (tokens->front().get_type() == RIGHT_PAREN) {
+                                break;
+                            }
+                        } while (tokens->front().get_type() == COMMA);
+                        tokens->pop_front();
+                        Token end = tokens->front();
+                        if (!end.is_end()) {
+                            type = FUNCTION_CREATE;
+                            statements.push_back(Statement(tokens));
+                        }
+                        break;
                     }
+                    if (middle.get_type() != EQUALS) {
+                        expected("= or (", middle.get_literal());
+                    }
+                    type = VAR_CREATE;
                     tokens->pop_front();
-                    Expression expression = Expression(tokens);
+                    expressions.push_back(Expression(tokens));
                     Token end = tokens->front();
-                    if (end.get_type() != NEW_LINE && end.get_type() != FILE_END) {
+                    if (!end.is_end()) {
                         expected("end", end.get_literal());
                     }
                 } break;
-                // ident = expression OR ident += expression etc
+                // ident = expression OR ident += expression also ident << epxress
                 case IDENT: {
-
+                    tokens->pop_front();
+                    Token middle = tokens->front();
+                    switch (middle.get_type()) {
+                        case EQUALS:
+                            type = VAR_SET;
+                            break;
+                        case PLUS_EQUALS:
+                            type = ADD_SET;
+                            break;
+                        case MINUS_EQUALS:
+                            type = SUBTRACT_SET;
+                            break;
+                        case TIMES_EQUALS:
+                            type = MULTIPLY_SET;
+                            break;
+                        case OVER_EQUALS:
+                            type = DIVIDE_SET;
+                            break;
+                        case DOUBLE_PLUS:
+                            type = INCREMENT;
+                            break;
+                        case DOUBLE_MINUS:
+                            type = DECREMENT;
+                            break;
+                        case INTO:
+                            type = STREAM_INTO;
+                            break;
+                        case OUTOF:
+                            type = STREAM_OUT;
+                            break;
+                        default:
+                            expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
+                    }
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
                 } break;
                 case FILE_END:
                 case NEW_LINE: {
+                    type = IGNORE;
+                    tokens->pop_front();
                 } break;
                 default: {
                     expected("statement", token.get_literal());
                 } break;
             }
-            tokens->pop_front();
+            // std::cout << get_type() << " types: {";
+            // for (TypeExpression expression : get_type_expressions()) {
+            //     std::cout << " " << expression.get_type().get_main_type();
+            // }
+            // std::cout << " } expressions: {";
+            // for (Expression expression : get_expressions()) {
+            //     std::cout << " " << expression.get_type();
+            // }
+            // std::cout << " }" << std::endl;
         }
         StatementType get_type() {
             return type;
@@ -585,11 +837,6 @@ class Script {
             while (tokens->size() != 0 && tokens->front().get_type() != FILE_END) {
                 Token token = tokens->front();
                 statements.push_back(Statement(tokens));
-                Statement statement = statements.back();
-                std::cout << statement.get_type() << std::endl;
-                for (TypeExpression expression : statement.get_type_expressions()) {
-                    std::cout << expression.get_type().get_main_type() << std::endl;
-                }
             }
         }
 };
