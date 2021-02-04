@@ -658,23 +658,27 @@ class Expression {
 
 class TypeExpression {
     private:
-        std::vector<toast::StateTypeHolder> type;
+        toast::StateType type;
+        std::vector<TypeExpression> type_expressions;
     public:
+        TypeExpression(toast::StateType type) {
+            this->type = type;
+        }
         TypeExpression(std::deque<Token>* tokens) {
             Token token = tokens->front();
             std::string literal = token.get_literal();
             if (literal == "int") {
-                type.push_back(toast::StateTypeHolder(toast::INT));
+                type = toast::INT;
             } else if (literal == "bool") {
-                type.push_back(toast::StateTypeHolder(toast::BOOL));
+                type = toast::BOOL;
             } else if (literal == "string") {
-                type.push_back(toast::StateTypeHolder(toast::STRING));
+                type = toast::STRING;
             } else if (literal == "float") {
-                type.push_back(toast::StateTypeHolder(toast::FLOAT));
+                type = toast::FLOAT;
             } else if (literal == "function") {
-                type.push_back(toast::StateTypeHolder(toast::FUNC));
+                type = toast::FUNC;
             } else if (literal == "array") {
-                type.push_back(toast::StateTypeHolder(toast::ARRAY));
+                type = toast::ARRAY;
             }
 
             toast::StateTypeHolder cur_type = get_type();
@@ -688,12 +692,16 @@ class TypeExpression {
                         expected("]", tokens->front().get_literal());
                     }
                     tokens->pop_front();
-                    type = { toast::StateTypeHolder(toast::ARRAY, { cur_type }) };
+                    type_expressions.push_back(TypeExpression(type));
+                    type = toast::ARRAY;
                 } break;
             }
         }
-        toast::StateTypeHolder get_type() {
-            return type.back();
+        toast::StateType get_type() {
+            return type;
+        }
+        std::vector<TypeExpression> get_type_expressions() {
+            return type_expressions;
         }
 };
 
@@ -856,15 +864,17 @@ class Statement {
                     expected("statement", token.get_literal());
                 } break;
             }
-            std::cout << get_type() << " types: {";
-            for (TypeExpression expression : get_type_expressions()) {
-                std::cout << " " << expression.get_type().get_main_type();
+            if (get_type() != IGNORE) {
+                std::cout << get_type() << " types: {";
+                for (TypeExpression expression : get_type_expressions()) {
+                    std::cout << " " << expression.get_type();
+                }
+                std::cout << " } expressions: {";
+                for (Expression expression : get_expressions()) {
+                    std::cout << " " << expression.get_type();
+                }
+                std::cout << " }" << std::endl;
             }
-            std::cout << " } expressions: {";
-            for (Expression expression : get_expressions()) {
-                std::cout << " " << expression.get_type();
-            }
-            std::cout << " }" << std::endl;
         }
         StatementType get_type() {
             return type;
@@ -891,6 +901,9 @@ class Script {
                 Token token = tokens->front();
                 statements.push_back(Statement(tokens));
             }
+        }
+        std::vector<Statement> get_statements() {
+            return statements;
         }
 };
 

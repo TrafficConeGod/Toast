@@ -1,6 +1,6 @@
 int num = 10
 num += 35
-num = num + 5
+num = num * 5
 string str = "Hello world!"
 bool something = true == false
 bool some_function(int arg) {
@@ -9,7 +9,7 @@ bool some_function(int arg) {
 
 if some_function(30, 50) == false {
     int a = 30
-} else {
+} else if 30 == 30 {
     int b = 25
 }
 
