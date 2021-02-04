@@ -52,8 +52,6 @@ enum TokenType {
     OVER_EQUALS,
     DOUBLE_PLUS,
     DOUBLE_MINUS,
-    INTO,
-    OUTOF,
     DOUBLE_EQUALS,
     EXCLAMATION_EQUALS,
     DOUBLE_AMPERSAND,
@@ -141,21 +139,9 @@ class Lexer {
                     type = HASH;
                     break;
                 case '<':
-                    if (next_ch == '<') {
-                        literal = "<<";
-                        type = INTO;
-                        position++;
-                        break;
-                    }
                     type = LEFT_ANGLE;
                     break;
                 case '>':
-                    if (next_ch == '>') {
-                        literal = ">>";
-                        type = OUTOF;
-                        position++;
-                        break;
-                    }
                     type = RIGHT_ANGLE;
                     break;
                 case '=':
@@ -685,6 +671,10 @@ class TypeExpression {
 
             tokens->pop_front();
             Token next = tokens->front();
+            TokenType next_type = next.get_type();
+            if (next_type == IDENT || next_type == RIGHT_ANGLE) {
+                return;
+            }
             switch (next.get_type()) {
                 case LEFT_BRACKET: {
                     tokens->pop_front();
@@ -694,6 +684,23 @@ class TypeExpression {
                     tokens->pop_front();
                     type_expressions.push_back(TypeExpression(type));
                     type = toast::ARRAY;
+                } break;
+                case LEFT_ANGLE: {
+                    tokens->pop_front();
+                    if (tokens->front().get_type() != RIGHT_ANGLE) {
+                        for (;;) {
+                            Token token = tokens->front();
+                            type_expressions.push_back(TypeExpression(tokens));
+                            Token next = tokens->front();
+                            tokens->pop_front();
+                            if (next.get_type() == RIGHT_ANGLE) {
+                                break;
+                            }
+                        }
+                    }
+                } break;
+                default: {
+                    expected("[ or <", next.get_literal());
                 } break;
             }
         }
@@ -844,12 +851,22 @@ class Statement {
                         case DOUBLE_MINUS:
                             type = DECREMENT;
                             break;
-                        case INTO:
+                        case LEFT_ANGLE: {
+                            tokens->pop_front();
+                            Token next = tokens->front();
+                            if (next.get_type() != LEFT_ANGLE) {
+                                expected("<", next.get_literal());
+                            }
                             type = STREAM_INTO;
-                            break;
-                        case OUTOF:
+                        } break;
+                        case RIGHT_ANGLE: {
+                            tokens->pop_front();
+                            Token next = tokens->front();
+                            if (next.get_type() != RIGHT_ANGLE) {
+                                expected(">", next.get_literal());
+                            }
                             type = STREAM_OUT;
-                            break;
+                        } break;
                         default:
                             expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
                     }
