@@ -466,180 +466,22 @@ void expected(std::string expected, std::string actual) {
     throw CompilerException();
 }
 
-class Statement;
-class Expression;
 class TypeExpression;
-
-class Expression {
+class Expression;
+class Statement {
     private:
-        ExpressionType type;
+        StatementType type;
         std::vector<Statement> statements;
-        std::vector<Expression> expressions;
         std::vector<TypeExpression> type_expressions;
-        void parse_middle(std::deque<Token>* tokens) {
-            Token middle = tokens->front();
-            TokenType middle_type = middle.get_type();
-            if (middle.is_end() || middle_type == LEFT_BRACE || middle_type == RIGHT_BRACE || middle_type == RIGHT_PAREN || middle_type == RIGHT_BRACKET || middle_type == COMMA) {
-                return;
-            }
-            tokens->pop_front();
-            ExpressionType old_type = type;
-            switch (middle.get_type()) {
-                case LEFT_PAREN: {
-                    type = FUNCTION_CALL;
-                    if (tokens->front().get_type() != RIGHT_PAREN) {
-                        for (;;) {
-                            Token token = tokens->front();
-                            expressions.push_back(Expression(tokens));
-                            Token next = tokens->front();
-                            tokens->pop_front();
-                            if (next.get_type() == RIGHT_PAREN) {
-                                break;
-                            }
-                        }
-                    }
-                    parse_middle(tokens);
-                    return;
-                }
-                case PLUS:
-                    type = ADD;
-                    break;
-                case MINUS:
-                    type = SUBTRACT;
-                    break;
-                case TIMES:
-                    type = MULTIPLY;
-                    break;
-                case OVER:
-                    type = DIVIDE;
-                    break;
-                case DOUBLE_EQUALS:
-                    type = IS;
-                    break;
-                case EXCLAMATION_EQUALS:
-                    type = NOT_IS;
-                    break;
-                case DOUBLE_AMPERSAND:
-                    type = AND;
-                    break;
-                case DOUBLE_VERT_BAR:
-                    type = OR;
-                    break;
-                case LEFT_BRACKET:
-                    if (tokens->front().get_type() != RIGHT_BRACKET) {
-                        expected("]", tokens->front().get_literal());
-                    }
-                    type = ARRAY_INDEX;
-                    break;
-                default:
-                    return;
-            }
-            Expression expression = Expression(type, statements, expressions, type_expressions);
-            statements = {};
-            expressions = { expression };
-            type_expressions = {};
-            expressions.push_back(Expression(tokens));
-        }
+        std::vector<Expression> expressions;
+        std::vector<std::string> identifiers;
     public:
-        Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions) {
-            this->type = type;
-            this->statements = statements;
-            this->expressions = expressions;
-            this->type_expressions = type_expressions;
-        }
-        Expression(std::deque<Token>* tokens) {
-            Token token = tokens->front();
-            switch (token.get_type()) {
-                // 10 20 34 193 etc
-                case INT_LITERAL: {
-                    type = INT;
-                    tokens->pop_front();
-                } break;
-                // true false
-                case BOOL_LITERAL: {
-                    type = BOOL;
-                    tokens->pop_front();
-                } break;
-                // "Hello world!"
-                case STR_LITERAL: {
-                    type = STRING;
-                    tokens->pop_front();
-                } break;
-                // var_name
-                case IDENT: {
-                    type = IDENTIFIER;
-                    tokens->pop_front();
-                } break;
-                // (expression)
-                case LEFT_PAREN: {
-                    tokens->pop_front();
-                    Expression expression = Expression(tokens);
-                    type = expression.get_type();
-                    statements = expression.get_statements();
-                    expressions = expression.get_expressions();
-                    type_expressions = expression.get_type_expressions();
-                    Token right_paren = tokens->front();
-                    if (right_paren.get_type() != RIGHT_PAREN) {
-                        expected(")", right_paren.get_literal());
-                    }
-                    tokens->pop_front();
-                } break;
-                // [expression, expression]
-                case LEFT_BRACKET: {
-                    type = ARRAY;
-                    tokens->pop_front();
-                    if (tokens->front().get_type() != RIGHT_BRACKET) {
-                        for (;;) {
-                            Token token = tokens->front();
-                            expressions.push_back(Expression(tokens));
-                            Token next = tokens->front();
-                            tokens->pop_front();
-                            if (next.get_type() == RIGHT_BRACKET) {
-                                break;
-                            }
-                        }
-                    }
-                } break;
-                // !expression
-                case EXCLAMATION: {
-                    type = NOT;
-                    tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
-                } break;
-                // #expression
-                case HASH: {
-                    type = LENGTH;
-                    tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
-                } break;
-                // type(type identifier) {}
-                case TYPE_IDENT: {
-                    type = FUNCTION;
-                    // to be done later
-                } break;
-                case FILE_END:
-                case NEW_LINE: {
-                    type = EX_IGNORE;
-                    tokens->pop_front();
-                } break;
-                default: {
-                    expected("expression", token.get_literal());
-                } break;
-            }
-            parse_middle(tokens);
-        }
-        ExpressionType get_type() {
-            return type;
-        }
-        std::vector<Statement> get_statements() {
-            return statements;
-        }
-        std::vector<Expression> get_expressions() {
-            return expressions;
-        }
-        std::vector<TypeExpression> get_type_expressions() {
-            return type_expressions;
-        }
+        Statement(std::deque<Token>* tokens);
+        StatementType get_type();
+        std::vector<Statement> get_statements();
+        std::vector<TypeExpression> get_type_expressions();
+        std::vector<Expression> get_expressions();
+        std::vector<std::string> get_identifiers();
 };
 
 class TypeExpression {
@@ -712,191 +554,191 @@ class TypeExpression {
         }
 };
 
-class Statement {
+
+class Expression {
     private:
-        StatementType type;
+        ExpressionType type;
         std::vector<Statement> statements;
-        std::vector<TypeExpression> type_expressions;
         std::vector<Expression> expressions;
+        std::vector<TypeExpression> type_expressions;
         std::vector<std::string> identifiers;
+        void parse_middle(std::deque<Token>* tokens) {
+            Token middle = tokens->front();
+            TokenType middle_type = middle.get_type();
+            if (middle.is_end() || middle_type == LEFT_BRACE || middle_type == RIGHT_BRACE || middle_type == RIGHT_PAREN || middle_type == RIGHT_BRACKET || middle_type == COMMA) {
+                return;
+            }
+            tokens->pop_front();
+            ExpressionType old_type = type;
+            switch (middle.get_type()) {
+                case LEFT_PAREN: {
+                    type = FUNCTION_CALL;
+                    if (tokens->front().get_type() != RIGHT_PAREN) {
+                        for (;;) {
+                            Token token = tokens->front();
+                            expressions.push_back(Expression(tokens));
+                            Token next = tokens->front();
+                            tokens->pop_front();
+                            if (next.get_type() == RIGHT_PAREN) {
+                                break;
+                            }
+                        }
+                    }
+                    parse_middle(tokens);
+                    return;
+                }
+                case PLUS:
+                    type = ADD;
+                    break;
+                case MINUS:
+                    type = SUBTRACT;
+                    break;
+                case TIMES:
+                    type = MULTIPLY;
+                    break;
+                case OVER:
+                    type = DIVIDE;
+                    break;
+                case DOUBLE_EQUALS:
+                    type = IS;
+                    break;
+                case EXCLAMATION_EQUALS:
+                    type = NOT_IS;
+                    break;
+                case DOUBLE_AMPERSAND:
+                    type = AND;
+                    break;
+                case DOUBLE_VERT_BAR:
+                    type = OR;
+                    break;
+                case LEFT_BRACKET:
+                    if (tokens->front().get_type() != RIGHT_BRACKET) {
+                        expected("]", tokens->front().get_literal());
+                    }
+                    type = ARRAY_INDEX;
+                    break;
+                default:
+                    return;
+            }
+            Expression expression = Expression(type, statements, expressions, type_expressions, identifiers);
+            statements = {};
+            expressions = { expression };
+            type_expressions = {};
+            expressions.push_back(Expression(tokens));
+        }
     public:
-        Statement(std::deque<Token>* tokens) {
+        Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions, std::vector<std::string> identifiers) {
+            this->type = type;
+            this->statements = statements;
+            this->expressions = expressions;
+            this->type_expressions = type_expressions;
+            this->identifiers = identifiers;
+        }
+        Expression(std::deque<Token>* tokens) {
             Token token = tokens->front();
             switch (token.get_type()) {
-                // Compound
-                case LEFT_BRACE: {
-                    type = COMPOUND;
-                    tokens->pop_front();
-                    do {
-                        Token token = tokens->front();
-                        statements.push_back(Statement(tokens));
-                    } while (tokens->front().get_type() != RIGHT_BRACE);
+                // 10 20 34 193 etc
+                case INT_LITERAL: {
+                    type = INT;
                     tokens->pop_front();
                 } break;
-                // If statement
-                case IF_WORD: {
-                    type = IF;
+                // true false
+                case BOOL_LITERAL: {
+                    type = BOOL;
                     tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
-                    statements.push_back(Statement(tokens));
                 } break;
-                // else if statement
-                case ELSE_WORD: {
+                // "Hello world!"
+                case STR_LITERAL: {
+                    type = STRING;
                     tokens->pop_front();
-                    Token next = tokens->front();
-                    if (next.get_type() == IF_WORD) {
-                        type = ELSE_IF;
-                        tokens->pop_front();
-                        expressions.push_back(Expression(tokens));
-                    } else {
-                        type = ELSE;
-                    }
-                    statements.push_back(Statement(tokens));
                 } break;
-                // Return statement
-                case RETURN_WORD: {
-                    type = RETURN;
-                    tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
-                    Token end = tokens->front();
-                    if (!end.is_end()) {
-                        expected("end", end.get_literal());
-                    }
-                } break;
-                // Delete statement
-                case DELETE_WORD: {
-                    type = DELETE;
-                    tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
-                    Token end = tokens->front();
-                    if (!end.is_end()) {
-                        expected("end", end.get_literal());
-                    }
-                } break;
-                // type ident = expression
-                case TYPE_IDENT: {
-                    type_expressions.push_back(TypeExpression(tokens));
-                    Token ident = tokens->front();
-                    if (ident.get_type() != IDENT) {
-                        expected("identifier", ident.get_literal());
-                    }
-                    identifiers.push_back(ident.get_literal());
-                    tokens->pop_front();
-                    Token middle = tokens->front();
-                    if (middle.is_end()) {
-                        type = VAR_DECLARE;
-                        break;
-                    }
-                    if (middle.get_type() == LEFT_PAREN) {
-                        type = FUNCTION_DECLARE;
-                        tokens->pop_front();
-                        if (tokens->front().get_type() != RIGHT_PAREN) {
-                            for (;;) {
-                                type_expressions.push_back(TypeExpression(tokens));
-                                Token ident = tokens->front();
-                                if (ident.get_type() != IDENT) {
-                                    expected("identifier", ident.get_literal());
-                                    throw CompilerException();
-                                }
-                                identifiers.push_back(ident.get_literal());
-                                tokens->pop_front();
-                                if (tokens->front().get_type() == RIGHT_PAREN) {
-                                    break;
-                                }
-                                tokens->pop_front();
-                            }
-                        }
-                        tokens->pop_front();
-                        Token end = tokens->front();
-                        if (!end.is_end()) {
-                            type = FUNCTION_CREATE;
-                            statements.push_back(Statement(tokens));
-                        }
-                        break;
-                    }
-                    if (middle.get_type() != EQUALS) {
-                        expected("= or (", middle.get_literal());
-                    }
-                    type = VAR_CREATE;
-                    tokens->pop_front();
-                    expressions.push_back(Expression(tokens));
-                    Token end = tokens->front();
-                    if (!end.is_end()) {
-                        expected("end", end.get_literal());
-                    }
-                } break;
-                // ident = expression OR ident += expression also ident << epxress
+                // var_name
                 case IDENT: {
+                    type = IDENTIFIER;
                     tokens->pop_front();
-                    Token middle = tokens->front();
-                    switch (middle.get_type()) {
-                        case EQUALS:
-                            type = VAR_SET;
-                            break;
-                        case PLUS_EQUALS:
-                            type = ADD_SET;
-                            break;
-                        case MINUS_EQUALS:
-                            type = SUBTRACT_SET;
-                            break;
-                        case TIMES_EQUALS:
-                            type = MULTIPLY_SET;
-                            break;
-                        case OVER_EQUALS:
-                            type = DIVIDE_SET;
-                            break;
-                        case DOUBLE_PLUS:
-                            type = INCREMENT;
-                            break;
-                        case DOUBLE_MINUS:
-                            type = DECREMENT;
-                            break;
-                        case LEFT_ANGLE: {
-                            tokens->pop_front();
-                            Token next = tokens->front();
-                            if (next.get_type() != LEFT_ANGLE) {
-                                expected("<", next.get_literal());
-                            }
-                            type = STREAM_INTO;
-                        } break;
-                        case RIGHT_ANGLE: {
-                            tokens->pop_front();
-                            Token next = tokens->front();
-                            if (next.get_type() != RIGHT_ANGLE) {
-                                expected(">", next.get_literal());
-                            }
-                            type = STREAM_OUT;
-                        } break;
-                        default:
-                            expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
+                } break;
+                // (expression)
+                case LEFT_PAREN: {
+                    tokens->pop_front();
+                    Expression expression = Expression(tokens);
+                    type = expression.get_type();
+                    statements = expression.get_statements();
+                    expressions = expression.get_expressions();
+                    type_expressions = expression.get_type_expressions();
+                    Token right_paren = tokens->front();
+                    if (right_paren.get_type() != RIGHT_PAREN) {
+                        expected(")", right_paren.get_literal());
                     }
                     tokens->pop_front();
-                    if (!tokens->front().is_end()) {
-                        expressions.push_back(Expression(tokens));
+                } break;
+                // [expression, expression]
+                case LEFT_BRACKET: {
+                    type = ARRAY;
+                    tokens->pop_front();
+                    if (tokens->front().get_type() != RIGHT_BRACKET) {
+                        for (;;) {
+                            Token token = tokens->front();
+                            expressions.push_back(Expression(tokens));
+                            Token next = tokens->front();
+                            tokens->pop_front();
+                            if (next.get_type() == RIGHT_BRACKET) {
+                                break;
+                            }
+                        }
                     }
+                } break;
+                // !expression
+                case EXCLAMATION: {
+                    type = NOT;
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
+                } break;
+                // #expression
+                case HASH: {
+                    type = LENGTH;
+                    tokens->pop_front();
+                    expressions.push_back(Expression(tokens));
+                } break;
+                // type(type identifier) {}
+                case TYPE_IDENT: {
+                    type = FUNCTION;
+                    type_expressions.push_back(TypeExpression(tokens));
+                    Token left_paren = tokens->front();
+                    if (left_paren.get_type() != LEFT_PAREN) {
+                        expected("(", left_paren.get_literal());
+                    }
+                    tokens->pop_front();
+                    if (tokens->front().get_type() != RIGHT_PAREN) {
+                        for (;;) {
+                            type_expressions.push_back(TypeExpression(tokens));
+                            Token ident = tokens->front();
+                            if (ident.get_type() != IDENT) {
+                                expected("identifier", ident.get_literal());
+                                throw CompilerException();
+                            }
+                            identifiers.push_back(ident.get_literal());
+                            tokens->pop_front();
+                            if (tokens->front().get_type() == RIGHT_PAREN) {
+                                break;
+                            }
+                            tokens->pop_front();
+                        }
+                    }
+                    tokens->pop_front();
+                    statements.push_back(Statement(tokens));
                 } break;
                 case FILE_END:
                 case NEW_LINE: {
-                    type = IGNORE;
+                    type = EX_IGNORE;
                     tokens->pop_front();
                 } break;
                 default: {
-                    expected("statement", token.get_literal());
+                    expected("expression", token.get_literal());
                 } break;
             }
-            if (get_type() != IGNORE) {
-                std::cout << get_type() << " types: {";
-                for (TypeExpression expression : get_type_expressions()) {
-                    std::cout << " " << expression.get_type();
-                }
-                std::cout << " } expressions: {";
-                for (Expression expression : get_expressions()) {
-                    std::cout << " " << expression.get_type();
-                }
-                std::cout << " }" << std::endl;
-            }
+            parse_middle(tokens);
         }
-        StatementType get_type() {
+        ExpressionType get_type() {
             return type;
         }
         std::vector<Statement> get_statements() {
@@ -909,6 +751,199 @@ class Statement {
             return type_expressions;
         }
 };
+
+Statement::Statement(std::deque<Token>* tokens) {
+    Token token = tokens->front();
+    switch (token.get_type()) {
+        // Compound
+        case LEFT_BRACE: {
+            type = COMPOUND;
+            tokens->pop_front();
+            do {
+                Token token = tokens->front();
+                statements.push_back(Statement(tokens));
+            } while (tokens->front().get_type() != RIGHT_BRACE);
+            tokens->pop_front();
+        } break;
+        // If statement
+        case IF_WORD: {
+            type = IF;
+            tokens->pop_front();
+            expressions.push_back(Expression(tokens));
+            statements.push_back(Statement(tokens));
+        } break;
+        // else if statement
+        case ELSE_WORD: {
+            tokens->pop_front();
+            Token next = tokens->front();
+            if (next.get_type() == IF_WORD) {
+                type = ELSE_IF;
+                tokens->pop_front();
+                expressions.push_back(Expression(tokens));
+            } else {
+                type = ELSE;
+            }
+            statements.push_back(Statement(tokens));
+        } break;
+        // Return statement
+        case RETURN_WORD: {
+            type = RETURN;
+            tokens->pop_front();
+            expressions.push_back(Expression(tokens));
+            Token end = tokens->front();
+            if (!end.is_end()) {
+                expected("end", end.get_literal());
+            }
+        } break;
+        // Delete statement
+        case DELETE_WORD: {
+            type = DELETE;
+            tokens->pop_front();
+            expressions.push_back(Expression(tokens));
+            Token end = tokens->front();
+            if (!end.is_end()) {
+                expected("end", end.get_literal());
+            }
+        } break;
+        // type ident = expression
+        case TYPE_IDENT: {
+            type_expressions.push_back(TypeExpression(tokens));
+            Token ident = tokens->front();
+            if (ident.get_type() != IDENT) {
+                expected("identifier", ident.get_literal());
+            }
+            identifiers.push_back(ident.get_literal());
+            tokens->pop_front();
+            Token middle = tokens->front();
+            if (middle.is_end()) {
+                type = VAR_DECLARE;
+                break;
+            }
+            if (middle.get_type() == LEFT_PAREN) {
+                type = FUNCTION_DECLARE;
+                tokens->pop_front();
+                if (tokens->front().get_type() != RIGHT_PAREN) {
+                    for (;;) {
+                        type_expressions.push_back(TypeExpression(tokens));
+                        Token ident = tokens->front();
+                        if (ident.get_type() != IDENT) {
+                            expected("identifier", ident.get_literal());
+                            throw CompilerException();
+                        }
+                        identifiers.push_back(ident.get_literal());
+                        tokens->pop_front();
+                        if (tokens->front().get_type() == RIGHT_PAREN) {
+                            break;
+                        }
+                        tokens->pop_front();
+                    }
+                }
+                tokens->pop_front();
+                Token end = tokens->front();
+                if (!end.is_end()) {
+                    type = FUNCTION_CREATE;
+                    statements.push_back(Statement(tokens));
+                }
+                break;
+            }
+            if (middle.get_type() != EQUALS) {
+                expected("= or (", middle.get_literal());
+            }
+            type = VAR_CREATE;
+            tokens->pop_front();
+            expressions.push_back(Expression(tokens));
+            Token end = tokens->front();
+            if (!end.is_end()) {
+                expected("end", end.get_literal());
+            }
+        } break;
+        // ident = expression OR ident += expression also ident << epxress
+        case IDENT: {
+            tokens->pop_front();
+            Token middle = tokens->front();
+            switch (middle.get_type()) {
+                case EQUALS:
+                    type = VAR_SET;
+                    break;
+                case PLUS_EQUALS:
+                    type = ADD_SET;
+                    break;
+                case MINUS_EQUALS:
+                    type = SUBTRACT_SET;
+                    break;
+                case TIMES_EQUALS:
+                    type = MULTIPLY_SET;
+                    break;
+                case OVER_EQUALS:
+                    type = DIVIDE_SET;
+                    break;
+                case DOUBLE_PLUS:
+                    type = INCREMENT;
+                    break;
+                case DOUBLE_MINUS:
+                    type = DECREMENT;
+                    break;
+                case LEFT_ANGLE: {
+                    tokens->pop_front();
+                    Token next = tokens->front();
+                    if (next.get_type() != LEFT_ANGLE) {
+                        expected("<", next.get_literal());
+                    }
+                    type = STREAM_INTO;
+                } break;
+                case RIGHT_ANGLE: {
+                    tokens->pop_front();
+                    Token next = tokens->front();
+                    if (next.get_type() != RIGHT_ANGLE) {
+                        expected(">", next.get_literal());
+                    }
+                    type = STREAM_OUT;
+                } break;
+                default:
+                    // try to make an expression
+                    tokens->push_front(token);
+                    expressions.push_back(Expression(tokens));
+                    // expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
+            }
+            tokens->pop_front();
+            if (!tokens->front().is_end()) {
+                expressions.push_back(Expression(tokens));
+            }
+        } break;
+        case FILE_END:
+        case NEW_LINE: {
+            type = IGNORE;
+            tokens->pop_front();
+        } break;
+        default: {
+            expected("statement", token.get_literal());
+        } break;
+    }
+    if (get_type() != IGNORE) {
+        std::cout << get_type() << " types: {";
+        for (TypeExpression expression : get_type_expressions()) {
+            std::cout << " " << expression.get_type();
+        }
+        std::cout << " } expressions: {";
+        for (Expression expression : get_expressions()) {
+            std::cout << " " << expression.get_type();
+        }
+        std::cout << " }" << std::endl;
+    }
+}
+
+std::vector<Statement> Statement::get_statements() {
+    return statements;
+}
+std::vector<Expression> Statement::get_expressions() {
+    return expressions;
+}
+std::vector<TypeExpression> Statement::get_type_expressions() {
+    return type_expressions;
+}
+StatementType Statement::get_type() {
+    return type;
+}
 
 class Script {
     private:

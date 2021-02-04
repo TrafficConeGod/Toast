@@ -2,12 +2,18 @@ int num = 10
 num += 35
 num = num * 5
 string str = "Hello world!"
+function<array<int>> test = array<int>() {
+    
+}
 bool something = true == false
 bool some_function(int arg, bool tt, function<array<int>> uuu) {
+    uuu()
     return true
 }
 
-if some_function(30, 50) == false {
+if some_function(30, true, array<int>() {
+    int b = 20
+}) == false {
     int a = 30
 } else if 30 == 30 {
     int b = 25
@@ -18,6 +24,5 @@ x << 10
 int y
 y << x
 int z = #x
-x >> aaa
-delete x * 10
+delete x
 str << " Goodbye world!"
