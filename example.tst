@@ -3,7 +3,7 @@ num += 35
 num = num * 5
 string str = "Hello world!"
 bool something = true == false
-bool some_function(int arg) {
+bool some_function(int arg, bool tt, int[] uuu) {
     return true
 }
 

@@ -783,19 +783,22 @@ class Statement {
                     if (middle.get_type() == LEFT_PAREN) {
                         type = FUNCTION_DECLARE;
                         tokens->pop_front();
-                        do {
-                            type_expressions.push_back(TypeExpression(tokens));
-                            Token ident = tokens->front();
-                            if (ident.get_type() != IDENT) {
-                                expected("identifier", ident.get_literal());
-                                throw CompilerException();
+                        if (tokens->front().get_type() != RIGHT_PAREN) {
+                            for (;;) {
+                                type_expressions.push_back(TypeExpression(tokens));
+                                Token ident = tokens->front();
+                                if (ident.get_type() != IDENT) {
+                                    expected("identifier", ident.get_literal());
+                                    throw CompilerException();
+                                }
+                                identifiers.push_back(ident.get_literal());
+                                tokens->pop_front();
+                                if (tokens->front().get_type() == RIGHT_PAREN) {
+                                    break;
+                                }
+                                tokens->pop_front();
                             }
-                            identifiers.push_back(ident.get_literal());
-                            tokens->pop_front();
-                            if (tokens->front().get_type() == RIGHT_PAREN) {
-                                break;
-                            }
-                        } while (tokens->front().get_type() == COMMA);
+                        }
                         tokens->pop_front();
                         Token end = tokens->front();
                         if (!end.is_end()) {
