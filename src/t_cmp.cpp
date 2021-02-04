@@ -493,22 +493,24 @@ class Expression {
         void parse_middle(std::deque<Token>* tokens) {
             Token middle = tokens->front();
             TokenType middle_type = middle.get_type();
-            if (middle.is_end() || middle_type == LEFT_BRACE || middle_type == RIGHT_BRACE) {
+            if (middle.is_end() || middle_type == LEFT_BRACE || middle_type == RIGHT_BRACE || middle_type == RIGHT_PAREN || middle_type == RIGHT_BRACKET || middle_type == COMMA) {
                 return;
             }
             tokens->pop_front();
-            if (middle_type == RIGHT_PAREN || middle_type == COMMA) {
-                return;
-            }
             ExpressionType old_type = type;
             switch (middle.get_type()) {
                 case LEFT_PAREN: {
                     type = FUNCTION_CALL;
                     if (tokens->front().get_type() != RIGHT_PAREN) {
-                        do {
+                        for (;;) {
                             Token token = tokens->front();
                             expressions.push_back(Expression(tokens));
-                        } while (tokens->front().get_type() == COMMA && tokens->front().get_type() != RIGHT_PAREN);
+                            Token next = tokens->front();
+                            tokens->pop_front();
+                            if (next.get_type() == RIGHT_PAREN) {
+                                break;
+                            }
+                        }
                     }
                     parse_middle(tokens);
                     return;
@@ -601,12 +603,16 @@ class Expression {
                     type = ARRAY;
                     tokens->pop_front();
                     if (tokens->front().get_type() != RIGHT_BRACKET) {
-                        do {
+                        for (;;) {
                             Token token = tokens->front();
                             expressions.push_back(Expression(tokens));
-                        } while (tokens->front().get_type() == COMMA && tokens->front().get_type() != RIGHT_BRACKET);
+                            Token next = tokens->front();
+                            tokens->pop_front();
+                            if (next.get_type() == RIGHT_BRACKET) {
+                                break;
+                            }
+                        }
                     }
-                    tokens->pop_front();
                 } break;
                 // !expression
                 case EXCLAMATION: {

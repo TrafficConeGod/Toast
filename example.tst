@@ -7,17 +7,17 @@ bool some_function(int arg) {
     return true
 }
 
-if some_function(30) == false {
+if some_function(30, 50) == false {
     int a = 30
 } else {
     int b = 25
 }
 
-int[] x = []
+int[] xaoiujs = [10, 20]
 x << 10
 int y
 y << x
 int z = #x
-x >> a
-delete x
+x >> aaa
+delete x * 10
 str << " Goodbye world!"

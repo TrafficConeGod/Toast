@@ -28,7 +28,6 @@ int main(int argc, char** argv) {
     t_vm::execute(instructions);
 
 
-
     // std::vector<toast::Instruction> instructions;
     // instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
     // instructions.push_back(toast::Instruction(toast::SET, { -1, 0, 10 }));
