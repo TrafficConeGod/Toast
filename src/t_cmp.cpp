@@ -5,6 +5,7 @@
 #include <deque>
 #include <sstream>
 #include <any>
+#include <algorithm>
 
 class CompilerException : public std::exception {
     private:
@@ -17,6 +18,16 @@ class CompilerException : public std::exception {
 
 void expected(std::string expected, std::string actual) {
     std::cout << "Expected " << expected << " but got " << actual << " instead" << std::endl;
+    throw CompilerException();
+}
+
+void already_declared(std::string name) {
+    std::cout << name << " has already been declared" << std::endl;
+    throw CompilerException();
+}
+
+void not_declared(std::string name) {
+    std::cout << name << " has not been declared" << std::endl;
     throw CompilerException();
 }
 
@@ -42,6 +53,10 @@ std::any parse_val(std::string literal, toast::StateTypeHolder type) {
             std::cout << "Invalid type" << std::endl;
             throw CompilerException();
     }
+}
+
+int frame_negate(int frame_key) {
+    return (frame_key * -1) - 1;
 }
 
 enum TokenType {
@@ -373,6 +388,7 @@ class State {
     private:
         std::vector<toast::StateTypeHolder> type;
         int stack_frame;
+        int offset;
     public:
         State(toast::StateTypeHolder type, int stack_frame) {
             this->type.push_back(type);
@@ -382,11 +398,17 @@ class State {
         toast::StateTypeHolder get_type() {
             return type.back();
         }
-        int get_stack_frame() {
+        int get_frame() {
             return stack_frame;
         }
-        int get_stack_frame_in_instruction() {
-            return (stack_frame * -1) - 1;
+        void set_offset(int offset) {
+            this->offset = offset;
+        }
+        int get_offset() {
+            return offset;
+        }
+        std::vector<int> get_args() {
+            return { frame_negate(stack_frame), offset };
         }
 };
 
@@ -400,7 +422,7 @@ class Scope {
     private:
         ScopeType type;
         std::vector<State*> state_stack;
-        std::map<std::string, State*> var_map;
+        std::map<std::string, State*> state_map;
         int stack_frame;
     public:
         Scope(ScopeType type, int stack_frame) {
@@ -418,14 +440,27 @@ class Scope {
         std::vector<State*> get_state_stack() {
             return state_stack;
         }
-        void add_var(std::string name, State* state) {
-            var_map[name] = state;
+        void add_state(std::string ident, State* state) {
+            state_map[ident] = state;
         }
-        bool has_var(std::string name) {
-            return var_map.count(name) != 0;
+        bool has_state(std::string ident) {
+            return state_map.count(ident) != 0;
         }
-        int get_var_offset(std::string name) {
-            State* state = var_map[name];
+        bool has_state(State* state) {
+            // google was real helpful here
+            bool val = false;
+            std::for_each(state_map.begin(), state_map.end(), [&](const std::pair<std::string, State*> entry) {
+                if (entry.second == state) {
+                    val = true;
+                }
+            });
+            return val;
+        }
+        int get_state_offset(std::string ident) {
+            State* state = state_map[ident];
+            return get_state_offset(state);
+        }
+        int get_state_offset(State* state) {
             for (int i = 0; i < state_stack.size(); i++) {
                 State* check_state = state_stack[i];
                 if (state == check_state) {
@@ -434,15 +469,84 @@ class Scope {
             }
             return 0;
         }
-        State* get_var(std::string name) {
-            return var_map[name];
+        State* get_state(std::string ident) {
+            return state_map[ident];
         }
         ScopeType get_type() {
             return type;
         }
-        int get_stack_frame() {
+        int get_frame() {
             return stack_frame;
         }
+};
+
+class Script;
+
+class Builder {
+    private:
+        Script* script;
+        std::vector<toast::Instruction> instructions;
+        std::vector<Scope*> scope_stack;
+        int stack_frame = 0;
+        void add_instructions(std::vector<toast::Instruction> add) {
+            for (toast::Instruction instruction : add) {
+                instructions.push_back(instruction);
+            }
+        }
+    public:
+        Builder(Script* script);
+        ~Builder() {
+            // for (Token token : tokens) {
+            //     delete token;
+            // }
+            for (Scope* scope : scope_stack) {
+                delete scope;
+            }
+
+        }
+        std::vector<toast::Instruction> get_instructions() {
+            return instructions;
+        }
+        bool has_state(std::string ident) {
+            for (int i = scope_stack.size() - 1; i >= 0; i--) {
+                Scope* scope = scope_stack[i];
+                if (scope->has_state(ident)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        int get_state_offset(State* state) {
+            int offset = 0;
+            for (int i = scope_stack.size() - 1; i >= 0; i--) {
+                Scope* scope = scope_stack[i];
+                if (scope->has_state(state)) {
+                    return scope->get_state_offset(state) + offset;
+                }
+                if (scope->get_frame() == state->get_frame()) {
+                    offset += scope->get_state_stack().size();
+                }
+            }
+            throw CompilerException();
+        }
+        State* get_state(std::string ident) {
+            for (int i = scope_stack.size() - 1; i >= 0; i--) {
+                Scope* scope = scope_stack[i];
+                if (scope->has_state(ident)) {
+                    State* state = scope->get_state(ident);
+                    state->set_offset(get_state_offset(state));
+                    return state;
+                }
+            }
+            throw CompilerException();
+        };
+        int get_frame() {
+            return scope_stack.back()->get_frame();
+        };
+        void add_state(std::string ident, State* state) {
+            scope_stack.back()->add_state(ident, state);
+        };
+
 };
 
 enum ScriptType {
@@ -513,7 +617,7 @@ class Statement {
         std::vector<TypeExpression> get_type_expressions();
         std::vector<Expression> get_expressions();
         std::vector<std::string> get_identifiers();
-        std::vector<toast::Instruction> generate_instructions();
+        std::vector<toast::Instruction> generate_instructions(Builder* builder);
         void clean();
 };
 
@@ -584,6 +688,40 @@ class TypeExpression {
         }
         std::vector<TypeExpression> get_type_expressions() {
             return type_expressions;
+        }
+        std::vector<int> get_args() {
+            switch (type) {
+                case toast::INT:
+                case toast::BOOL:
+                case toast::STRING:
+                case toast::FLOAT:
+                    return { type };
+                default:
+                    std::vector<int> args = { type };
+                    for (TypeExpression type_expr : type_expressions) {
+                        std::vector<int> sub_args = type_expr.get_args();
+                        args.push_back(sub_args.size());
+                        for (int sub_arg : sub_args) {
+                            args.push_back(sub_arg);
+                        }
+                    }
+                    return args;
+            }
+        }
+        toast::StateTypeHolder get_type_holder() {
+            switch (type) {
+                case toast::INT:
+                case toast::BOOL:
+                case toast::STRING:
+                case toast::FLOAT:
+                    return toast::StateTypeHolder(type);
+                default:
+                    std::vector<toast::StateTypeHolder> sub_types = {};
+                    for (TypeExpression type_expr : type_expressions) {
+                        sub_types.push_back(type_expr.get_type_holder());
+                    }
+                    return toast::StateTypeHolder(type, sub_types);
+            }
         }
 };
 
@@ -836,6 +974,53 @@ class Expression {
                 expressions = cleaned;
             }
         }
+        bool can_be_set() {
+            switch (type) {
+                case INT:
+                case BOOL:
+                case STRING:
+                case IDENTIFIER:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        int get_value() {
+            return std::any_cast<int>(values.back());
+        }
+        std::string get_string_value() {
+            return std::any_cast<std::string>(values.back());
+        }
+        std::vector<toast::Instruction> generate_push_instructions() {
+            return {};
+        }
+        std::vector<toast::Instruction> generate_pop_instructions() {
+            return {};
+        }
+        std::vector<int> get_move_args(Builder* builder) {
+            switch (type) {
+                case INT:
+                    return { toast::INT, get_value() };
+                case BOOL:
+                    return { toast::BOOL, get_value() };
+                case IDENTIFIER: {
+                    std::string ident = identifiers.back();
+                    State* state = builder->get_state(ident);
+                    return { frame_negate(state->get_frame()), state->get_offset() };
+                } default:
+                    return { frame_negate(builder->get_frame()), 0 };
+            }
+        }
+        // bool can_be_quick_moved() {
+        //     switch (type) {
+        //         case INT:
+        //         case BOOL:
+        //         case IDENTIFIER:
+        //             return true;
+        //         default:
+        //             return false;
+        //     }
+        // }
 };
 
 Statement::Statement(std::deque<Token>* tokens) {
@@ -1044,13 +1229,40 @@ void Statement::clean() {
     }
 }
 
-std::vector<toast::Instruction> Statement::generate_instructions() {
+std::vector<toast::Instruction> Statement::generate_instructions(Builder* builder) {
+    std::vector<toast::Instruction> instructions;
     switch (type) {
         case VAR_CREATE: {
-
+            TypeExpression type_expr = type_expressions.back();
+            instructions.push_back(toast::Instruction(toast::PUSH, type_expr.get_args()));
+            std::string ident = identifiers.back();
+            if (builder->has_state(ident)) {
+                already_declared(ident);
+            }
+            builder->add_state(ident, new State(type_expr.get_type_holder(), builder->get_frame()));
+            State* state = builder->get_state(ident);
+            Expression expr = expressions.back();
+            if (expr.can_be_set()) {
+                std::vector<int> args = state->get_args();
+                if (state->get_type().equals(toast::STRING)) {
+                    instructions.push_back(toast::Instruction(toast::SET, args, expr.get_string_value()));
+                } else {
+                    args.push_back(expr.get_value());
+                    instructions.push_back(toast::Instruction(toast::SET, args));
+                }
+            } else {
+                std::vector<int> args = state->get_args();
+                std::vector<int> move_args = expr.get_move_args(builder);
+                args.insert(args.end(), move_args.begin(), move_args.end());
+                std::vector<toast::Instruction> push = expr.generate_push_instructions();
+                std::vector<toast::Instruction> pop = expr.generate_pop_instructions();
+                instructions.insert(instructions.end(), push.begin(), push.end());
+                instructions.push_back(toast::Instruction(toast::MOVE, args));
+                instructions.insert(instructions.end(), pop.begin(), pop.end());
+            }
         } break;
     }
-    return {};
+    return instructions;
 }
 
 class Script {
@@ -1105,39 +1317,13 @@ class Parser {
         }
 };
 
-class Builder {
-    private:
-        Script* script;
-        std::vector<toast::Instruction> instructions;
-        std::vector<Scope*> scope_stack;
-        int stack_frame = 0;
-        void add_instructions(std::vector<toast::Instruction> add) {
-            for (toast::Instruction instruction : add) {
-                instructions.push_back(instruction);
-            }
-        }
-    public:
-        Builder(Script* script) {
-            Scope* global_scope = new Scope(GLOBAL, stack_frame);
-            scope_stack.push_back(global_scope);
-            for (Statement statement : script->get_statements()) {
-                add_instructions(statement.generate_instructions());
-            }
-        }
-        ~Builder() {
-            // for (Token token : tokens) {
-            //     delete token;
-            // }
-            for (Scope* scope : scope_stack) {
-                delete scope;
-            }
-
-        }
-        std::vector<toast::Instruction> get_instructions() {
-            return instructions;
-        }
-
-};
+Builder::Builder(Script* script) {
+    Scope* global_scope = new Scope(GLOBAL, stack_frame);
+    scope_stack.push_back(global_scope);
+    for (Statement statement : script->get_statements()) {
+        add_instructions(statement.generate_instructions(this));
+    }
+}
 
 std::vector<toast::Instruction> t_cmp::generate_instruction_list(std::string source) {
     try {
