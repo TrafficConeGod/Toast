@@ -230,8 +230,10 @@ class Lexer {
                     }
                     if (next_ch == '/') {
                         // comment time
+                        literal = "\n";
                         get_and_move_until_char('\n');
-                        return;
+                        type = NEW_LINE;
+                        break;
                     }
                     type = OVER;
                     break;
@@ -330,6 +332,10 @@ class Lexer {
                     break;
                 }
                 stream << ch;
+                if (i + 1 >= source.length()) {
+                    position = i;
+                    break;
+                }
             }
             return stream.str();
         }
@@ -507,6 +513,7 @@ class Statement {
         std::vector<TypeExpression> get_type_expressions();
         std::vector<Expression> get_expressions();
         std::vector<std::string> get_identifiers();
+        std::vector<toast::Instruction> generate_instructions();
         void clean();
 };
 
@@ -1037,6 +1044,15 @@ void Statement::clean() {
     }
 }
 
+std::vector<toast::Instruction> Statement::generate_instructions() {
+    switch (type) {
+        case VAR_CREATE: {
+
+        } break;
+    }
+    return {};
+}
+
 class Script {
     private:
         ScriptType type;
@@ -1095,11 +1111,18 @@ class Builder {
         std::vector<toast::Instruction> instructions;
         std::vector<Scope*> scope_stack;
         int stack_frame = 0;
+        void add_instructions(std::vector<toast::Instruction> add) {
+            for (toast::Instruction instruction : add) {
+                instructions.push_back(instruction);
+            }
+        }
     public:
         Builder(Script* script) {
             Scope* global_scope = new Scope(GLOBAL, stack_frame);
             scope_stack.push_back(global_scope);
-            
+            for (Statement statement : script->get_statements()) {
+                add_instructions(statement.generate_instructions());
+            }
         }
         ~Builder() {
             // for (Token token : tokens) {
