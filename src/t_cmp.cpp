@@ -15,6 +15,35 @@ class CompilerException : public std::exception {
         }
 };
 
+void expected(std::string expected, std::string actual) {
+    std::cout << "Expected " << expected << " but got " << actual << " instead" << std::endl;
+    throw CompilerException();
+}
+
+
+std::any parse_val(std::string literal, toast::StateTypeHolder type) {
+    switch (type.get_main_type()) {
+        case toast::INT: {
+            std::stringstream stream(literal);
+            int val = 0;
+            stream >> val;
+            if (val == 0 && literal != "0") {
+                expected("a number", literal);
+            }
+            return val;
+        } break;
+        case toast::BOOL: {
+            if (literal != "true" && literal != "false") {
+                expected("a boolean", literal);
+            }
+            return literal == "true";
+        } break;
+        default:
+            std::cout << "Invalid type" << std::endl;
+            throw CompilerException();
+    }
+}
+
 enum TokenType {
     ILLEGAL,
     FILE_END,
@@ -435,6 +464,7 @@ enum StatementType {
     DIVIDE_SET,
     INCREMENT,
     DECREMENT,
+    EMPTY,
     IGNORE
 };
 
@@ -461,11 +491,6 @@ enum ExpressionType {
     EX_IGNORE
 };
 
-void expected(std::string expected, std::string actual) {
-    std::cout << "Expected " << expected << " but got " << actual << " instead" << std::endl;
-    throw CompilerException();
-}
-
 class TypeExpression;
 class Expression;
 class Statement {
@@ -482,6 +507,7 @@ class Statement {
         std::vector<TypeExpression> get_type_expressions();
         std::vector<Expression> get_expressions();
         std::vector<std::string> get_identifiers();
+        void clean();
 };
 
 class TypeExpression {
@@ -562,11 +588,27 @@ class Expression {
         std::vector<Expression> expressions;
         std::vector<TypeExpression> type_expressions;
         std::vector<std::string> identifiers;
+        std::vector<std::any> values;
         void parse_middle(std::deque<Token>* tokens) {
             Token middle = tokens->front();
             TokenType middle_type = middle.get_type();
-            if (middle.is_end() || middle_type == LEFT_BRACE || middle_type == RIGHT_BRACE || middle_type == RIGHT_PAREN || middle_type == RIGHT_BRACKET || middle_type == COMMA) {
+            if (middle.is_end()) {
                 return;
+            }
+            switch (middle.get_type()) {
+                case LEFT_PAREN:
+                case PLUS:
+                case MINUS:
+                case TIMES:
+                case OVER:
+                case DOUBLE_EQUALS:
+                case EXCLAMATION_EQUALS:
+                case DOUBLE_AMPERSAND:
+                case DOUBLE_VERT_BAR:
+                case LEFT_BRACKET:
+                    break;
+                default:
+                    return;
             }
             tokens->pop_front();
             ExpressionType old_type = type;
@@ -620,19 +662,20 @@ class Expression {
                 default:
                     return;
             }
-            Expression expression = Expression(type, statements, expressions, type_expressions, identifiers);
+            Expression expression = Expression(old_type, statements, expressions, type_expressions, identifiers, values);
             statements = {};
             expressions = { expression };
             type_expressions = {};
             expressions.push_back(Expression(tokens));
         }
     public:
-        Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions, std::vector<std::string> identifiers) {
+        Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions, std::vector<std::string> identifiers, std::vector<std::any> values) {
             this->type = type;
             this->statements = statements;
             this->expressions = expressions;
             this->type_expressions = type_expressions;
             this->identifiers = identifiers;
+            this->values = values;
         }
         Expression(std::deque<Token>* tokens) {
             Token token = tokens->front();
@@ -640,21 +683,25 @@ class Expression {
                 // 10 20 34 193 etc
                 case INT_LITERAL: {
                     type = INT;
+                    values.push_back(parse_val(token.get_literal(), toast::INT));
                     tokens->pop_front();
                 } break;
                 // true false
                 case BOOL_LITERAL: {
                     type = BOOL;
+                    values.push_back(parse_val(token.get_literal(), toast::BOOL));
                     tokens->pop_front();
                 } break;
                 // "Hello world!"
                 case STR_LITERAL: {
                     type = STRING;
+                    values.push_back(token.get_literal());
                     tokens->pop_front();
                 } break;
                 // var_name
                 case IDENT: {
                     type = IDENTIFIER;
+                    identifiers.push_back(token.get_literal());
                     tokens->pop_front();
                 } break;
                 // (expression)
@@ -665,6 +712,8 @@ class Expression {
                     statements = expression.get_statements();
                     expressions = expression.get_expressions();
                     type_expressions = expression.get_type_expressions();
+                    identifiers = expression.get_identifiers();
+                    values = expression.get_values();
                     Token right_paren = tokens->front();
                     if (right_paren.get_type() != RIGHT_PAREN) {
                         expected(")", right_paren.get_literal());
@@ -749,6 +798,34 @@ class Expression {
         }
         std::vector<TypeExpression> get_type_expressions() {
             return type_expressions;
+        }
+        std::vector<std::string> get_identifiers() {
+            return identifiers;
+        }
+        std::vector<std::any> get_values() {
+            return values;
+        }
+        void clean() {
+            {
+                std::vector<Statement> cleaned;
+                for (Statement statement : statements) {
+                    if (statement.get_type() != IGNORE) {
+                        statement.clean();
+                        cleaned.push_back(statement);
+                    }
+                }
+                statements = cleaned;
+            }
+            {
+                std::vector<Expression> cleaned;
+                for (Expression expression : expressions) {
+                    if (expression.get_type() != EX_IGNORE) {
+                        expression.clean();
+                        cleaned.push_back(expression);
+                    }
+                }
+                expressions = cleaned;
+            }
         }
 };
 
@@ -857,9 +934,14 @@ Statement::Statement(std::deque<Token>* tokens) {
                 expected("end", end.get_literal());
             }
         } break;
-        // ident = expression OR ident += expression also ident << epxress
-        case IDENT: {
+        case FILE_END:
+        case NEW_LINE: {
+            type = IGNORE;
             tokens->pop_front();
+        } break;
+        // expression = expression
+        default: {
+            expressions.push_back(tokens);
             Token middle = tokens->front();
             switch (middle.get_type()) {
                 case EQUALS:
@@ -899,36 +981,21 @@ Statement::Statement(std::deque<Token>* tokens) {
                     }
                     type = STREAM_OUT;
                 } break;
+                case RIGHT_PAREN:
+                    type = EMPTY;
+                    break;
                 default:
-                    // try to make an expression
-                    tokens->push_front(token);
-                    expressions.push_back(Expression(tokens));
-                    // expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
+                    // // try to make an expression
+                    // tokens->push_front(token);
+                    // expressions.push_back(Expression(tokens));
+                    // return;
+                    expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
             }
             tokens->pop_front();
             if (!tokens->front().is_end()) {
                 expressions.push_back(Expression(tokens));
             }
         } break;
-        case FILE_END:
-        case NEW_LINE: {
-            type = IGNORE;
-            tokens->pop_front();
-        } break;
-        default: {
-            expected("statement", token.get_literal());
-        } break;
-    }
-    if (get_type() != IGNORE) {
-        std::cout << get_type() << " types: {";
-        for (TypeExpression expression : get_type_expressions()) {
-            std::cout << " " << expression.get_type();
-        }
-        std::cout << " } expressions: {";
-        for (Expression expression : get_expressions()) {
-            std::cout << " " << expression.get_type();
-        }
-        std::cout << " }" << std::endl;
     }
 }
 
@@ -943,6 +1010,29 @@ std::vector<TypeExpression> Statement::get_type_expressions() {
 }
 StatementType Statement::get_type() {
     return type;
+}
+
+void Statement::clean() {
+    {
+        std::vector<Statement> cleaned;
+        for (Statement statement : statements) {
+            if (statement.get_type() != IGNORE) {
+                statement.clean();
+                cleaned.push_back(statement);
+            }
+        }
+        statements = cleaned;
+    }
+    {
+        std::vector<Expression> cleaned;
+        for (Expression expression : expressions) {
+            if (expression.get_type() != EX_IGNORE) {
+                expression.clean();
+                cleaned.push_back(expression);
+            }
+        }
+        expressions = cleaned;
+    }
 }
 
 class Script {
@@ -960,30 +1050,51 @@ class Script {
         std::vector<Statement> get_statements() {
             return statements;
         }
+        void clean() {
+            std::vector<Statement> cleaned;
+            for (Statement statement : statements) {
+                if (statement.get_type() != IGNORE) {
+                    statement.clean();
+                    cleaned.push_back(statement);
+                    std::cout << statement.get_type() << " types: {";
+                    for (TypeExpression expression : statement.get_type_expressions()) {
+                        std::cout << " " << expression.get_type();
+                    }
+                    std::cout << " } expressions: {";
+                    for (Expression expression : statement.get_expressions()) {
+                        std::cout << " " << expression.get_type();
+                    }
+                    std::cout << " }" << std::endl;
+                }
+            }
+            statements = cleaned;
+        }
 };
 
 class Parser {
     private:
-        std::deque<Token> tokens;
+        Script* script;
     public:
         Parser(std::deque<Token> tokens) {
-            this->tokens = tokens;
-            Script script = Script(&tokens);
+            script = new Script(&tokens);
+            script->clean();
         }
         ~Parser() {
 
+        }
+        Script* get_script() {
+            return script;
         }
 };
 
 class Builder {
     private:
-        std::deque<Token> tokens;
+        Script* script;
         std::vector<toast::Instruction> instructions;
         std::vector<Scope*> scope_stack;
         int stack_frame = 0;
     public:
-        Builder(std::deque<Token> tokens) {
-            this->tokens = tokens;
+        Builder(Script* script) {
             Scope* global_scope = new Scope(GLOBAL, stack_frame);
             scope_stack.push_back(global_scope);
             
@@ -1011,7 +1122,8 @@ std::vector<toast::Instruction> t_cmp::generate_instruction_list(std::string sou
         //     std::cout << token.get_type() << " " << token.get_literal() << std::endl;
         // }
         Parser parser = Parser(tokens);
-        return {};
+        Builder builder = Builder(parser.get_script());
+        return builder.get_instructions();
         // Builder builder = Builder(tokens);
         // std::vector<toast::Instruction> instructions = builder.get_instructions();
         // return instructions;
@@ -1041,27 +1153,4 @@ toast::StateTypeHolder get_type(std::string literal) {
         throw toast::Exception("Invalid type");
     }
     return toast::StateTypeHolder(type_enum);
-}
-
-
-int t_cmp::parse_val(std::string literal, toast::StateTypeHolder type) {
-    switch (type.get_main_type()) {
-        case toast::INT: {
-            std::stringstream stream(literal);
-            int val = 0;
-            stream >> val;
-            if (val == 0 && literal != "0") {
-                throw toast::Exception("Not a number");
-            }
-            return val;
-        } break;
-        case toast::BOOL: {
-            if (literal != "true" && literal != "false") {
-                throw toast::Exception("Not a bool");
-            }
-            return literal == "true";
-        } break;
-        default:
-            return 0;
-    }
 }
