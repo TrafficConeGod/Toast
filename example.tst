@@ -1,5 +1,5 @@
 int num = 10
-num += 35
+num[20] += 35
 num = num * 5
 string str = "Hello world!"
 function<array<int>> test = array<int>() {

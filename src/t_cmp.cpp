@@ -654,11 +654,13 @@ class Expression {
                     type = OR;
                     break;
                 case LEFT_BRACKET:
+                    type = ARRAY_INDEX;
+                    expressions.push_back(Expression(tokens));
                     if (tokens->front().get_type() != RIGHT_BRACKET) {
                         expected("]", tokens->front().get_literal());
                     }
-                    type = ARRAY_INDEX;
-                    break;
+                    tokens->pop_front();
+                    return;
                 default:
                     return;
             }
