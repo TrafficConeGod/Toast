@@ -1,4 +1,5 @@
 int num = 10 + 20
+int not_str = 20
 int my_val
 bool my_function() {
     int x = 10

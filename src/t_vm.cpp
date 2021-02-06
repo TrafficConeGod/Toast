@@ -43,7 +43,7 @@ void t_vm::Runner::set_frame(int key, bool push_stack) {
 
 t_vm::State* t_vm::Runner::get_state(int val, int offset) {
     if (val >= 0) {
-        toast::StateTypeHolder type = toast::StateTypeHolder((toast::StateType) val);
+        toast::StateTypeHolder type((toast::StateType) val);
         State* state = new State(type);
         state->set_temp(true);
         switch (state->get_type().get_main_type()) {
@@ -103,7 +103,7 @@ void t_vm::Runner::handle_instruction() {
     std::cout << frame_key << " " << toast::make_human_readable(instruction);
     switch (type) {
         case toast::PUSH: {
-            toast::StateTypeHolder type = toast::StateTypeHolder(args);
+            toast::StateTypeHolder type(args);
             State* state = push_state(type);
         } break;
         case toast::POP: {

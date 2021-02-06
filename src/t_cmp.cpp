@@ -1092,6 +1092,38 @@ class Expression {
                     return { frame_negate(builder->get_frame()), 0 };
             }
         }
+        toast::StateTypeHolder get_type_holder(Builder* builder) {
+            switch (type) {
+                case INT:
+                    return toast::StateTypeHolder(toast::INT);
+                case BOOL:
+                    return toast::StateTypeHolder(toast::BOOL);
+                case STRING:
+                    return toast::StateTypeHolder(toast::STRING);
+                case IDENTIFIER: {
+                    std::string ident = identifiers.back();
+                    State* state = builder->get_state(ident);
+                    return state->get_type();
+                }
+                case FUNCTION: {
+                    std::vector<toast::StateTypeHolder> sub_types = {};
+                    for (TypeExpression type_expr : type_expressions) {
+                        sub_types.push_back(type_expr.get_type_holder());
+                    }
+                    return toast::StateTypeHolder(toast::FUNC, sub_types);
+                }
+                default: {
+                    Expression expr = expressions.back();
+                    return expr.get_type_holder(builder);
+                }
+            }
+        }
+        void check_type(Builder* builder, State* state) {
+            if (!state->get_type().equals(get_type_holder(builder))) {
+                std::cout << "Types are incompatible" << std::endl;
+                throw CompilerException();
+            }
+        }
         // bool can_be_quick_moved() {
         //     switch (type) {
         //         case INT:
@@ -1331,6 +1363,7 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
             State* state = builder->get_state(ident);
             if (type == VAR_CREATE) {
                 Expression expr = expressions.back();
+                expr.check_type(builder, state);
                 if (expr.can_be_set()) {
                     std::vector<int> args = state->get_args();
                     if (state->get_type().equals(toast::STRING)) {
