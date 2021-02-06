@@ -721,25 +721,6 @@ class TypeExpression {
         std::vector<TypeExpression> get_type_expressions() {
             return type_expressions;
         }
-        std::vector<int> get_args() {
-            switch (type) {
-                case toast::INT:
-                case toast::BOOL:
-                case toast::STRING:
-                case toast::FLOAT:
-                    return { type };
-                default:
-                    std::vector<int> args = { type };
-                    for (TypeExpression type_expr : type_expressions) {
-                        std::vector<int> sub_args = type_expr.get_args();
-                        args.push_back(sub_args.size());
-                        for (int sub_arg : sub_args) {
-                            args.push_back(sub_arg);
-                        }
-                    }
-                    return args;
-            }
-        }
         toast::StateTypeHolder get_type_holder() {
             switch (type) {
                 case toast::INT:
@@ -1063,6 +1044,20 @@ class Expression {
                     merge(&args, args_2);
                     instructions.push_back(toast::Instruction(instruction_type, args));
                 } break;
+                case FUNCTION: {
+                    builder->add_temp_offset();
+                    instructions.push_back(toast::Instruction(toast::PUSH, get_type_holder(builder).get_args()));
+                    instructions.push_back(toast::Instruction(toast::SET, get_move_args(builder)));
+                    Scope* scope = new Scope(FUNC, builder->get_frame() + 1);
+                    builder->push_scope(scope);
+                    Statement sub_statement = statements.back();
+                    std::vector<toast::Instruction> sub_instructions = sub_statement.generate_instructions(builder);
+                    instructions.push_back(toast::Instruction(toast::SKIP, { (int)sub_instructions.size() + 2 }));
+                    merge(&instructions, sub_instructions);
+                    instructions.push_back(toast::Instruction(toast::BACK, {}));
+                    instructions.push_back(toast::Instruction(toast::EXIT, {}));
+                    delete builder->pop_scope();
+                } break;
             }
             return instructions;
         }
@@ -1080,6 +1075,10 @@ class Expression {
                     builder->sub_temp_offset();
                     instructions.push_back(toast::Instruction(toast::POP, {}));
                 } break;
+                case FUNCTION:
+                    builder->sub_temp_offset();
+                    instructions.push_back(toast::Instruction(toast::POP, {}));
+                    break;
             }
             return instructions;
         }
@@ -1380,7 +1379,7 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
         case FUNCTION_CREATE:
         case FUNCTION_DECLARE: {
             TypeExpression type_expr = type_expressions.back();
-            instructions.push_back(toast::Instruction(toast::PUSH, type_expr.get_args()));
+            instructions.push_back(toast::Instruction(toast::PUSH, type_expr.get_type_holder().get_args()));
             std::string ident = identifiers.back();
             if (builder->has_state(ident)) {
                 already_declared(ident);

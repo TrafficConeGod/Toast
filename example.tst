@@ -1,11 +1,11 @@
-int num = 10 + 20
-int not_str = 20
-int my_val
-bool my_function() {
-    int x = 10
-}
+// int num = 10 + 20
+// int not_str = 20
+// int my_val
+// bool my_function() {
+//     int x = 10
+// }
 function<bool> my_func = bool() {
-    
+    int a = 10
 }
 // num[20] += 35
 // num = num * 5

@@ -38,6 +38,7 @@ namespace toast {
             std::vector<StateTypeHolder> get_sub_types();
             bool equals(StateTypeHolder type);
             bool equals(StateType type);
+            std::vector<int> get_args();
     };
 
 

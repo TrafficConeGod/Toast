@@ -187,3 +187,23 @@ toast::StateTypeHolder::StateTypeHolder(std::vector<int> type_args) {
 std::vector<toast::StateTypeHolder> toast::StateTypeHolder::get_sub_types() {
     return sub_types;
 }
+
+std::vector<int> toast::StateTypeHolder::get_args() {
+    switch (main_type) {
+        case toast::INT:
+        case toast::BOOL:
+        case toast::STRING:
+        case toast::FLOAT:
+            return { main_type };
+        default:
+            std::vector<int> args = { main_type };
+            for (StateTypeHolder type : sub_types) {
+                std::vector<int> sub_args = type.get_args();
+                args.push_back(sub_args.size());
+                for (int sub_arg : sub_args) {
+                    args.push_back(sub_arg);
+                }
+            }
+            return args;
+    }
+}
