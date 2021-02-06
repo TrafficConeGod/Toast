@@ -588,7 +588,7 @@ enum StatementType {
     FUNCTION_CREATE,
     VAR_DECLARE,
     VAR_CREATE,
-    VAR_SET,
+    SET,
     STREAM_INTO,
     STREAM_OUT,
     ADD_SET,
@@ -1214,7 +1214,7 @@ Statement::Statement(std::deque<Token>* tokens) {
             Token middle = tokens->front();
             switch (middle.get_type()) {
                 case EQUALS:
-                    type = VAR_SET;
+                    type = SET;
                     break;
                 case PLUS_EQUALS:
                     type = ADD_SET;
@@ -1307,7 +1307,8 @@ void Statement::clean() {
 std::vector<toast::Instruction> Statement::generate_instructions(Builder* builder) {
     std::vector<toast::Instruction> instructions;
     switch (type) {
-        case VAR_CREATE: {
+        case VAR_CREATE:
+        case VAR_DECLARE: {
             TypeExpression type_expr = type_expressions.back();
             instructions.push_back(toast::Instruction(toast::PUSH, type_expr.get_args()));
             std::string ident = identifiers.back();
@@ -1316,22 +1317,24 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
             }
             builder->add_state(ident, new State(type_expr.get_type_holder(), builder->get_frame()));
             State* state = builder->get_state(ident);
-            Expression expr = expressions.back();
-            if (expr.can_be_set()) {
-                std::vector<int> args = state->get_args();
-                if (state->get_type().equals(toast::STRING)) {
-                    instructions.push_back(toast::Instruction(toast::SET, args, expr.get_string_value()));
+            if (type == VAR_CREATE) {
+                Expression expr = expressions.back();
+                if (expr.can_be_set()) {
+                    std::vector<int> args = state->get_args();
+                    if (state->get_type().equals(toast::STRING)) {
+                        instructions.push_back(toast::Instruction(toast::SET, args, expr.get_string_value()));
+                    } else {
+                        args.push_back(expr.get_value());
+                        instructions.push_back(toast::Instruction(toast::SET, args));
+                    }
                 } else {
-                    args.push_back(expr.get_value());
-                    instructions.push_back(toast::Instruction(toast::SET, args));
+                    merge(&instructions, expr.generate_push_instructions(builder));
+                    builder->update_state(state);
+                    std::vector<int> args = state->get_args();
+                    merge(&args, expr.get_move_args(builder));
+                    instructions.push_back(toast::Instruction(toast::MOVE, args));
+                    merge(&instructions, expr.generate_pop_instructions(builder));
                 }
-            } else {
-                merge(&instructions, expr.generate_push_instructions(builder));
-                builder->update_state(state);
-                std::vector<int> args = state->get_args();
-                merge(&args, expr.get_move_args(builder));
-                instructions.push_back(toast::Instruction(toast::MOVE, args));
-                merge(&instructions, expr.generate_pop_instructions(builder));
             }
         } break;
     }

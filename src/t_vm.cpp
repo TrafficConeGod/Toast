@@ -79,16 +79,18 @@ t_vm::State* t_vm::Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
     std::cout << "Popped state of type " << state->get_type().get_main_type();
-    switch (state->get_type().get_main_type()) {
-        case toast::INT:
-            std::cout << " and value " << state->get_value<int>();
-            break;
-        case toast::BOOL:
-            std::cout << " and value " << state->get_value<bool>();
-            break;
-        case toast::STRING:
-            std::cout << " and value " << state->get_value<std::string>();
-            break;
+    if (!state->is_empty()) {
+        switch (state->get_type().get_main_type()) {
+            case toast::INT:
+                std::cout << " and value " << state->get_value<int>();
+                break;
+            case toast::BOOL:
+                std::cout << " and value " << state->get_value<bool>();
+                break;
+            case toast::STRING:
+                std::cout << " and value " << state->get_value<std::string>();
+                break;
+        }
     }
     std::cout << std::endl;
     return state;
@@ -473,5 +475,5 @@ t_vm::State* t_vm::State::clone() {
 }
 
 bool t_vm::State::is_empty() {
-    return has_value;
+    return !has_value;
 }
