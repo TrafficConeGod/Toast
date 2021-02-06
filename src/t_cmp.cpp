@@ -451,7 +451,7 @@ class Scope {
         std::vector<State*> get_state_stack() {
             return state_stack;
         }
-        void add_state(std::string ident, State* state) {
+        void push_state(std::string ident, State* state) {
             state_map[ident] = state;
             state_stack.push_back(state);
         }
@@ -558,8 +558,8 @@ class Builder {
         int get_frame() {
             return scope_stack.back()->get_frame();
         }
-        void add_state(std::string ident, State* state) {
-            scope_stack.back()->add_state(ident, state);
+        void push_state(std::string ident, State* state) {
+            scope_stack.back()->push_state(ident, state);
         }
         void update_state(State* state) {
             state->set_offset(get_state_offset(state));
@@ -570,8 +570,13 @@ class Builder {
         void sub_temp_offset() {
             temp_offset--;
         }
-        void add_scope(Scope* scope) {
+        void push_scope(Scope* scope) {
             scope_stack.push_back(scope);
+        }
+        Scope* pop_scope() {
+            Scope* scope = scope_stack.back();
+            scope_stack.pop_back();
+            return scope;
         }
 };
 
@@ -1380,7 +1385,7 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
             if (builder->has_state(ident)) {
                 already_declared(ident);
             }
-            builder->add_state(ident, new State(type_expr.get_type_holder(), builder->get_frame()));
+            builder->push_state(ident, new State(type_expr.get_type_holder(), builder->get_frame()));
             State* state = builder->get_state(ident);
             if (type == VAR_CREATE) {
                 Expression expr = expressions.back();
@@ -1388,13 +1393,14 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
             } else if (type == FUNCTION_CREATE) {
                 instructions.push_back(toast::Instruction(toast::SET, { frame_negate(builder->get_frame()), 0 }));
                 Scope* scope = new Scope(FUNC, builder->get_frame() + 1);
-                builder->add_scope(scope);
+                builder->push_scope(scope);
                 Statement sub_statement = statements.back();
                 std::vector<toast::Instruction> sub_instructions = sub_statement.generate_instructions(builder);
                 instructions.push_back(toast::Instruction(toast::SKIP, { (int)sub_instructions.size() + 2 }));
                 merge(&instructions, sub_instructions);
                 instructions.push_back(toast::Instruction(toast::BACK, {}));
                 instructions.push_back(toast::Instruction(toast::EXIT, {}));
+                delete builder->pop_scope();
             }
         } break;
         case COMPOUND: {
@@ -1460,7 +1466,7 @@ class Parser {
 
 Builder::Builder(Script* script) {
     Scope* global_scope = new Scope(GLOBAL, stack_frame);
-    add_scope(global_scope);
+    push_scope(global_scope);
     for (Statement statement : script->get_statements()) {
         merge(&instructions, statement.generate_instructions(this));
     }
