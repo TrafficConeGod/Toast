@@ -4,7 +4,7 @@ int my_val
 bool my_function() {
     int x = 10
 }
-function<bool> my_func = bool(int z) {
+function<bool> my_func = bool() {
     
 }
 // num[20] += 35

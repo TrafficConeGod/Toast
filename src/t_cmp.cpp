@@ -636,6 +636,7 @@ class Statement {
         std::vector<TypeExpression> type_expressions;
         std::vector<Expression> expressions;
         std::vector<std::string> identifiers;
+        void handle_set(Builder* builder, std::vector<toast::Instruction>* instructions, State* state, Expression expr);
     public:
         Statement(std::deque<Token>* tokens);
         StatementType get_type();
@@ -1346,6 +1347,26 @@ void Statement::clean() {
     }
 }
 
+void Statement::handle_set(Builder* builder, std::vector<toast::Instruction>* instructions, State* state, Expression expr) {
+    expr.check_type(builder, state);
+    if (expr.can_be_set()) {
+        std::vector<int> args = state->get_args();
+        if (state->get_type().equals(toast::STRING)) {
+            instructions->push_back(toast::Instruction(toast::SET, args, expr.get_string_value()));
+        } else {
+            args.push_back(expr.get_value());
+            instructions->push_back(toast::Instruction(toast::SET, args));
+        }
+    } else {
+        merge(instructions, expr.generate_push_instructions(builder));
+        builder->update_state(state);
+        std::vector<int> args = state->get_args();
+        merge(&args, expr.get_move_args(builder));
+        instructions->push_back(toast::Instruction(toast::MOVE, args));
+        merge(instructions, expr.generate_pop_instructions(builder));
+    }
+}
+
 std::vector<toast::Instruction> Statement::generate_instructions(Builder* builder) {
     std::vector<toast::Instruction> instructions;
     switch (type) {
@@ -1363,23 +1384,7 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
             State* state = builder->get_state(ident);
             if (type == VAR_CREATE) {
                 Expression expr = expressions.back();
-                expr.check_type(builder, state);
-                if (expr.can_be_set()) {
-                    std::vector<int> args = state->get_args();
-                    if (state->get_type().equals(toast::STRING)) {
-                        instructions.push_back(toast::Instruction(toast::SET, args, expr.get_string_value()));
-                    } else {
-                        args.push_back(expr.get_value());
-                        instructions.push_back(toast::Instruction(toast::SET, args));
-                    }
-                } else {
-                    merge(&instructions, expr.generate_push_instructions(builder));
-                    builder->update_state(state);
-                    std::vector<int> args = state->get_args();
-                    merge(&args, expr.get_move_args(builder));
-                    instructions.push_back(toast::Instruction(toast::MOVE, args));
-                    merge(&instructions, expr.generate_pop_instructions(builder));
-                }
+                handle_set(builder, &instructions, state, expr);
             } else if (type == FUNCTION_CREATE) {
                 instructions.push_back(toast::Instruction(toast::SET, { frame_negate(builder->get_frame()), 0 }));
                 Scope* scope = new Scope(FUNC, builder->get_frame() + 1);
