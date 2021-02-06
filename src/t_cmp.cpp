@@ -1107,6 +1107,9 @@ class Expression {
                     return toast::StateTypeHolder(toast::STRING);
                 case IDENTIFIER: {
                     std::string ident = identifiers.back();
+                    if (!builder->has_state(ident)) {
+                        not_declared(ident);
+                    }
                     State* state = builder->get_state(ident);
                     return state->get_type();
                 }
@@ -1127,6 +1130,21 @@ class Expression {
             if (!state->get_type().equals(get_type_holder(builder))) {
                 std::cout << "Types are incompatible" << std::endl;
                 throw CompilerException();
+            }
+        }
+        State* get_state(Builder* builder) {
+            switch (type) {
+                case IDENTIFIER: {
+                    std::string ident = identifiers.back();
+                    if (!builder->has_state(ident)) {
+                        not_declared(ident);
+                    }
+                    State* state = builder->get_state(ident);
+                    return state;
+                } break;
+                default:
+                    std::cout << "Not identifiying" << std::endl;
+                    throw CompilerException();
             }
         }
         // bool can_be_quick_moved() {
@@ -1406,6 +1424,14 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
             for (Statement sub_statement : statements) {
                 merge(&instructions, sub_statement.generate_instructions(builder));
             }
+        } break;
+        case SET: {
+            Expression expr = expressions.front();
+            Expression expr_set_to = expressions[1];
+            merge(&instructions, expr.generate_push_instructions(builder));
+            State* state = expr.get_state(builder);
+            handle_set(builder, &instructions, state, expr_set_to);
+            merge(&instructions, expr.generate_pop_instructions(builder));
         } break;
     }
     return instructions;
