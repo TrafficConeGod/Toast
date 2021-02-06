@@ -453,6 +453,7 @@ class Scope {
         }
         void add_state(std::string ident, State* state) {
             state_map[ident] = state;
+            state_stack.push_back(state);
         }
         bool has_state(std::string ident) {
             return state_map.count(ident) != 0;
@@ -489,6 +490,13 @@ class Scope {
         int get_frame() {
             return stack_frame;
         }
+        std::vector<toast::Instruction> get_instructions() {
+            std::vector<toast::Instruction> instructions;
+            for (State* state : state_stack) {
+                instructions.push_back(toast::Instruction(toast::POP, {}));
+            }
+            return instructions;
+        }
 };
 
 class Script;
@@ -500,11 +508,6 @@ class Builder {
         std::vector<Scope*> scope_stack;
         int stack_frame = 0;
         int temp_offset = 0;
-        void add_instructions(std::vector<toast::Instruction> add) {
-            for (toast::Instruction instruction : add) {
-                instructions.push_back(instruction);
-            }
-        }
     public:
         Builder(Script* script);
         ~Builder() {
@@ -1391,8 +1394,9 @@ Builder::Builder(Script* script) {
     Scope* global_scope = new Scope(GLOBAL, stack_frame);
     scope_stack.push_back(global_scope);
     for (Statement statement : script->get_statements()) {
-        add_instructions(statement.generate_instructions(this));
+        merge(&instructions, statement.generate_instructions(this));
     }
+    merge(&instructions, global_scope->get_instructions());
 }
 
 std::vector<toast::Instruction> t_cmp::generate_instruction_list(std::string source) {
