@@ -1,13 +1,5 @@
-string str = "Hello world!"
-string strl
-strl = str
-// num += 35
-// num = num * 5
+int num = 60 * 89
 // string str = "Hello world!"
-// function<int> test = int() {
-    
-// }
-// bool something = true == false
 // bool some_function(int arg, bool tt, function<array<int>> uuu) {
 //     uuu()
 //     return true

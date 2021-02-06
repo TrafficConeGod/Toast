@@ -570,6 +570,9 @@ class Builder {
         void sub_temp_offset() {
             temp_offset--;
         }
+        int get_temp_offset() {
+            return temp_offset;
+        }
         void push_scope(Scope* scope) {
             scope_stack.push_back(scope);
         }
@@ -1037,8 +1040,8 @@ class Expression {
                     std::vector<int> args = get_move_args(builder);
                     std::vector<int> args_1 = expr_1.get_move_args(builder);
                     std::vector<int> args_2 = expr_2.get_move_args(builder);
-                    args_1 = offset_args(args_1, 1);
-                    args_2 = offset_args(args_2, 1);
+                    args_1 = offset_args(args_1, builder->get_temp_offset() - 2);
+                    args_2 = offset_args(args_2, builder->get_temp_offset() - 1);
                     merge(&args, args_1);
                     merge(&args, args_2);
                     instructions.push_back(toast::Instruction(instruction_type, args));
@@ -1424,12 +1427,23 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
                 merge(&instructions, sub_statement.generate_instructions(builder));
             }
         } break;
+        case ADD_SET:
+        case SUBTRACT_SET:
+        case MULTIPLY_SET:
+        case DIVIDE_SET:
         case SET: {
             Expression expr = expressions.front();
-            Expression expr_set_to = expressions[1];
+            Expression expr_from = expressions[1];
             merge(&instructions, expr.generate_push_instructions(builder));
             State* state = expr.get_state(builder);
-            handle_set(builder, &instructions, state, expr_set_to);
+            if (type == SET) {
+                handle_set(builder, &instructions, state, expr_from);
+            } else {
+                std::vector<int> args = state->get_args();
+                merge(&args, args);
+                merge(&args, expr_from.get_move_args(builder));
+                instructions.push_back(toast::Instruction(toast::ADD, args));
+            }
             merge(&instructions, expr.generate_pop_instructions(builder));
         } break;
     }
