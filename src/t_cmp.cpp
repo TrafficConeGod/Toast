@@ -1040,7 +1040,7 @@ class Expression {
                     std::vector<int> args = get_move_args(builder);
                     std::vector<int> args_1 = expr_1.get_move_args(builder);
                     std::vector<int> args_2 = expr_2.get_move_args(builder);
-                    args_1 = offset_args(args_1, builder->get_temp_offset() - 2);
+                    args_1 = offset_args(args_1, builder->get_temp_offset() - 1);
                     args_2 = offset_args(args_2, builder->get_temp_offset() - 1);
                     merge(&args, args_1);
                     merge(&args, args_2);
