@@ -30,7 +30,20 @@ toast::StateType toast::StateTypeHolder::get_main_type() {
 // }
 
 bool toast::StateTypeHolder::equals(StateTypeHolder type) {
-    return main_type == type.get_main_type();
+    if (main_type != type.get_main_type()) {
+        return false;
+    }
+    if (sub_types.size() != type.get_sub_types().size()) {
+        return false;
+    }
+    for (int i = 0; i < sub_types.size(); i++) {
+        StateTypeHolder type_1 = sub_types[i];
+        StateTypeHolder type_2 = type.get_sub_types()[i];
+        if (!type_1.equals(type_2)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool toast::StateTypeHolder::equals(StateType type) {
@@ -169,4 +182,8 @@ toast::StateTypeHolder::StateTypeHolder(std::vector<int> type_args) {
             }
         } break;
     }
+}
+
+std::vector<toast::StateTypeHolder> toast::StateTypeHolder::get_sub_types() {
+    return sub_types;
 }

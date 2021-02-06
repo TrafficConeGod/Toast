@@ -4,9 +4,9 @@ int my_val
 bool my_function() {
     int x = 10
 }
-// function<bool> my_func = bool() {
+function<bool> my_func = bool(int z) {
     
-// }
+}
 // num[20] += 35
 // num = num * 5
 // string str = "Hello world!"
