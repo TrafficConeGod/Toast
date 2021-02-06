@@ -31,6 +31,17 @@ void not_declared(std::string name) {
     throw CompilerException();
 }
 
+template<typename T>
+void merge(std::vector<T>* first, std::vector<T> second) {
+    first->insert(first->end(), second.begin(), second.end());
+}
+
+std::vector<int> offset_args(std::vector<int> args, int amount) {
+    if (args[0] < 0) {
+        args[1] += amount;
+    }
+    return args;
+}
 
 std::any parse_val(std::string literal, toast::StateTypeHolder type) {
     switch (type.get_main_type()) {
@@ -488,6 +499,7 @@ class Builder {
         std::vector<toast::Instruction> instructions;
         std::vector<Scope*> scope_stack;
         int stack_frame = 0;
+        int temp_offset = 0;
         void add_instructions(std::vector<toast::Instruction> add) {
             for (toast::Instruction instruction : add) {
                 instructions.push_back(instruction);
@@ -517,7 +529,7 @@ class Builder {
             return false;
         };
         int get_state_offset(State* state) {
-            int offset = 0;
+            int offset = temp_offset;
             for (int i = scope_stack.size() - 1; i >= 0; i--) {
                 Scope* scope = scope_stack[i];
                 if (scope->has_state(state)) {
@@ -534,19 +546,27 @@ class Builder {
                 Scope* scope = scope_stack[i];
                 if (scope->has_state(ident)) {
                     State* state = scope->get_state(ident);
-                    state->set_offset(get_state_offset(state));
+                    update_state(state);
                     return state;
                 }
             }
             throw CompilerException();
-        };
+        }
         int get_frame() {
             return scope_stack.back()->get_frame();
-        };
+        }
         void add_state(std::string ident, State* state) {
             scope_stack.back()->add_state(ident, state);
-        };
-
+        }
+        void update_state(State* state) {
+            state->set_offset(get_state_offset(state));
+        }
+        void add_temp_offset() {
+            temp_offset++;
+        }
+        void sub_temp_offset() {
+            temp_offset--;
+        }
 };
 
 enum ScriptType {
@@ -991,11 +1011,62 @@ class Expression {
         std::string get_string_value() {
             return std::any_cast<std::string>(values.back());
         }
-        std::vector<toast::Instruction> generate_push_instructions() {
-            return {};
+        std::vector<toast::Instruction> generate_push_instructions(Builder* builder) {
+            std::vector<toast::Instruction> instructions;
+            switch (type) {
+                case ADD:
+                case SUBTRACT:
+                case MULTIPLY:
+                case DIVIDE: {
+                    Expression expr_1 = expressions[0];
+                    Expression expr_2 = expressions[1];
+                    merge(&instructions, expr_1.generate_push_instructions(builder));
+                    merge(&instructions, expr_2.generate_push_instructions(builder));
+                    builder->add_temp_offset();
+                    instructions.push_back(toast::Instruction(toast::PUSH, { toast::INT }));
+                    toast::InstructionType instruction_type;
+                    switch (type) {
+                        case ADD:
+                            instruction_type = toast::ADD;
+                            break;
+                        case SUBTRACT:
+                            instruction_type = toast::SUBTRACT;
+                            break;
+                        case MULTIPLY:
+                            instruction_type = toast::MULTIPLY;
+                            break;
+                        case DIVIDE:
+                            instruction_type = toast::DIVIDE;
+                            break;
+                    }
+                    std::vector<int> args = get_move_args(builder);
+                    std::vector<int> args_1 = expr_1.get_move_args(builder);
+                    std::vector<int> args_2 = expr_2.get_move_args(builder);
+                    args_1 = offset_args(args_1, 2);
+                    args_2 = offset_args(args_2, 1);
+                    merge(&args, args_1);
+                    merge(&args, args_2);
+                    instructions.push_back(toast::Instruction(instruction_type, args));
+                } break;
+            }
+            return instructions;
         }
-        std::vector<toast::Instruction> generate_pop_instructions() {
-            return {};
+        std::vector<toast::Instruction> generate_pop_instructions(Builder* builder) {
+            std::vector<toast::Instruction> instructions;
+            switch (type) {
+                case ADD:
+                case SUBTRACT:
+                case MULTIPLY:
+                case DIVIDE: {
+                    Expression expr_1 = expressions[0];
+                    Expression expr_2 = expressions[1];
+                    merge(&instructions, expr_1.generate_pop_instructions(builder));
+                    merge(&instructions, expr_2.generate_pop_instructions(builder));
+                    builder->sub_temp_offset();
+                    instructions.push_back(toast::Instruction(toast::POP, {}));
+                } break;
+            }
+            return instructions;
         }
         std::vector<int> get_move_args(Builder* builder) {
             switch (type) {
@@ -1007,7 +1078,8 @@ class Expression {
                     std::string ident = identifiers.back();
                     State* state = builder->get_state(ident);
                     return { frame_negate(state->get_frame()), state->get_offset() };
-                } default:
+                } break;
+                default:
                     return { frame_negate(builder->get_frame()), 0 };
             }
         }
@@ -1251,14 +1323,12 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
                     instructions.push_back(toast::Instruction(toast::SET, args));
                 }
             } else {
+                merge(&instructions, expr.generate_push_instructions(builder));
+                builder->update_state(state);
                 std::vector<int> args = state->get_args();
-                std::vector<int> move_args = expr.get_move_args(builder);
-                args.insert(args.end(), move_args.begin(), move_args.end());
-                std::vector<toast::Instruction> push = expr.generate_push_instructions();
-                std::vector<toast::Instruction> pop = expr.generate_pop_instructions();
-                instructions.insert(instructions.end(), push.begin(), push.end());
+                merge(&args, expr.get_move_args(builder));
                 instructions.push_back(toast::Instruction(toast::MOVE, args));
-                instructions.insert(instructions.end(), pop.begin(), pop.end());
+                merge(&instructions, expr.generate_pop_instructions(builder));
             }
         } break;
     }
