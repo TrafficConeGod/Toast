@@ -1,5 +1,6 @@
-int num
-num = 10 + 20
+string str = "Hello world!"
+string strl
+strl = str
 // num += 35
 // num = num * 5
 // string str = "Hello world!"

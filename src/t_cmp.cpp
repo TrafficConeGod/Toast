@@ -995,7 +995,6 @@ class Expression {
                 case INT:
                 case BOOL:
                 case STRING:
-                case IDENTIFIER:
                     return true;
                 default:
                     return false;
