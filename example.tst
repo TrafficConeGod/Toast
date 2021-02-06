@@ -1,4 +1,4 @@
-int num = 10 + 20 + 30
+int num = 8 * (70 + 10)
 // num[20] += 35
 // num = num * 5
 // string str = "Hello world!"

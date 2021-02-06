@@ -196,17 +196,15 @@ void t_vm::Runner::handle_instruction() {
         case toast::MULTIPLY:
         case toast::DIVIDE: {
             State* move_into = get_state(args[0], args[1]);
-            int val = 0;
-            for (int i = 2; i < args.size(); i += 2) {
-                State* op_state = get_state(args[i], args[i + 1]);
-                int op_val = op_state->get_value<int>();
-                switch (type) {
-                    case toast::ADD: val += op_val; break;
-                    case toast::SUBTRACT: val -= op_val; break;
-                    case toast::MULTIPLY: val *= op_val; break;
-                    case toast::DIVIDE: val /= op_val; break;
-                }
-                op_state->clean();
+            State* op_1_state = get_state(args[2], args[3]);
+            State* op_2_state = get_state(args[4], args[5]);
+            int val = op_1_state->get_value<int>();
+            int val_2 = op_2_state->get_value<int>();
+            switch (type) {
+                case toast::ADD: val += val_2; break;
+                case toast::SUBTRACT: val -= val_2; break;
+                case toast::MULTIPLY: val *= val_2; break;
+                case toast::DIVIDE: val /= val_2; break;
             }
             move_into->set_value<int>(val);
         } break;
