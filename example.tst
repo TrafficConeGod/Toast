@@ -1,5 +1,11 @@
 int num = 10 + 20
 int my_val
+bool my_function() {
+    int x = 10
+}
+// function<bool> my_func = bool() {
+    
+// }
 // num[20] += 35
 // num = num * 5
 // string str = "Hello world!"
@@ -27,3 +33,19 @@ int my_val
 // int z = #x
 // delete x
 // str << " Goodbye world!"
+
+// class MyClass {
+//     private int val
+
+//     private int get_val() {
+//         return val
+//     }
+
+//     op new(int val) {
+//         this.val = val
+//     }
+
+//     op add(MyClass with) {
+//         val += with.get_val()
+//     }
+// }

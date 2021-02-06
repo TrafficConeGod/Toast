@@ -570,6 +570,9 @@ class Builder {
         void sub_temp_offset() {
             temp_offset--;
         }
+        void add_scope(Scope* scope) {
+            scope_stack.push_back(scope);
+        }
 };
 
 enum ScriptType {
@@ -674,7 +677,7 @@ class TypeExpression {
             tokens->pop_front();
             Token next = tokens->front();
             TokenType next_type = next.get_type();
-            if (next_type == IDENT || next_type == RIGHT_ANGLE) {
+            if (next_type == IDENT || next_type == RIGHT_ANGLE || next_type == LEFT_PAREN) {
                 return;
             }
             switch (next.get_type()) {
@@ -745,6 +748,9 @@ class TypeExpression {
                     }
                     return toast::StateTypeHolder(type, sub_types);
             }
+        }
+        void add_expression(TypeExpression expr) {
+            type_expressions.push_back(expr);
         }
 };
 
@@ -1167,10 +1173,14 @@ Statement::Statement(std::deque<Token>* tokens) {
             }
             if (middle.get_type() == LEFT_PAREN) {
                 type = FUNCTION_DECLARE;
+                TypeExpression return_expr = type_expressions.back();
+                TypeExpression func_expr = TypeExpression(toast::FUNC);
+                func_expr.add_expression(return_expr);
+                type_expressions[0] = func_expr;
                 tokens->pop_front();
                 if (tokens->front().get_type() != RIGHT_PAREN) {
                     for (;;) {
-                        type_expressions.push_back(TypeExpression(tokens));
+                        func_expr.add_expression(TypeExpression(tokens));
                         Token ident = tokens->front();
                         if (ident.get_type() != IDENT) {
                             expected("identifier", ident.get_literal());
@@ -1308,7 +1318,9 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
     std::vector<toast::Instruction> instructions;
     switch (type) {
         case VAR_CREATE:
-        case VAR_DECLARE: {
+        case VAR_DECLARE:
+        case FUNCTION_CREATE:
+        case FUNCTION_DECLARE: {
             TypeExpression type_expr = type_expressions.back();
             instructions.push_back(toast::Instruction(toast::PUSH, type_expr.get_args()));
             std::string ident = identifiers.back();
@@ -1335,6 +1347,21 @@ std::vector<toast::Instruction> Statement::generate_instructions(Builder* builde
                     instructions.push_back(toast::Instruction(toast::MOVE, args));
                     merge(&instructions, expr.generate_pop_instructions(builder));
                 }
+            } else if (type == FUNCTION_CREATE) {
+                instructions.push_back(toast::Instruction(toast::SET, { frame_negate(builder->get_frame()), 0 }));
+                Scope* scope = new Scope(FUNC, builder->get_frame() + 1);
+                builder->add_scope(scope);
+                Statement sub_statement = statements.back();
+                std::vector<toast::Instruction> sub_instructions = sub_statement.generate_instructions(builder);
+                instructions.push_back(toast::Instruction(toast::SKIP, { (int)sub_instructions.size() + 2 }));
+                merge(&instructions, sub_instructions);
+                instructions.push_back(toast::Instruction(toast::BACK, {}));
+                instructions.push_back(toast::Instruction(toast::EXIT, {}));
+            }
+        } break;
+        case COMPOUND: {
+            for (Statement sub_statement : statements) {
+                merge(&instructions, sub_statement.generate_instructions(builder));
             }
         } break;
     }
@@ -1395,7 +1422,7 @@ class Parser {
 
 Builder::Builder(Script* script) {
     Scope* global_scope = new Scope(GLOBAL, stack_frame);
-    scope_stack.push_back(global_scope);
+    add_scope(global_scope);
     for (Statement statement : script->get_statements()) {
         merge(&instructions, statement.generate_instructions(this));
     }
