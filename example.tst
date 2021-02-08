@@ -1,7 +1,7 @@
 int num = 10
 num += 35
 num = num * 5
-// string str = "Hello world!"
+string str = "Hello world!"
 // bool some_function(int arg, bool tt, function<array<int>> uuu) {
 //     uuu()
 //     return true
