@@ -1,6 +1,6 @@
 #include "StateTypeHolder.h"
-using namespace std;
 using namespace toast;
+using namespace std;
 
 StateTypeHolder::StateTypeHolder(StateType main_type) {
     this->main_type = main_type;

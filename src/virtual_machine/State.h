@@ -16,19 +16,26 @@ namespace toast {
             State(StateTypeHolder type);
             ~State();
             StateTypeHolder get_type();
-            template<typename T>
-            T get_value();
-            template<typename T>
-            void set_value(T val);
             std::any get_value_any();
-            void move_value_from(State* state);
-            // void set_value(std::vector<int> val);
-            // void set_value(int val);
+            void move_value_from(State* state);;
             std::string get_cpp_string();
             bool equals(State* state);
             void set_temp(bool temp);
             void clean();
             State* clone();
             bool is_empty();
+            // i love c++
+            template<typename T>
+            void set_value(T val) {
+                has_value = true;
+                value = val;
+            }
+            template<typename T>
+            T get_value() {
+                if (!has_value) {
+                    throw Exception("Has no value");
+                }
+                return std::any_cast<T>(value);
+            }
     };
 }

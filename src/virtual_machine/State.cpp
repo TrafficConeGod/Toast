@@ -24,20 +24,6 @@ StateTypeHolder State::get_type() {
 //     this->value.push_back(val);
 // }
 
-template<typename T>
-void State::set_value(T val) {
-    has_value = true;
-    value = val;
-}
-
-template<typename T>
-T State::get_value() {
-    if (!has_value) {
-        throw Exception("Has no value");
-    }
-    return any_cast<T>(value);
-}
-
 any State::get_value_any() {
     return value;
 }

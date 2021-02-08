@@ -1,7 +1,6 @@
 #include "Exception.h"
-
-using namespace std;
 using namespace toast;
+using namespace std;
 
 Exception::Exception(const char* msg) {
     this->msg = msg;
