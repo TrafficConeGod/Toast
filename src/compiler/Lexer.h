@@ -1,6 +1,5 @@
 #pragma once
 #include "Token.h"
-#include "CompilerException.h"
 #include <iostream>
 #include <deque>
 #include <sstream>

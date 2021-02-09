@@ -1,7 +1,7 @@
 #pragma once
 
 namespace toast {
-    enum StateType {
+    enum class StateType {
         VOID,
         INT,
         BOOL,

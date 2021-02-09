@@ -1,17 +1,16 @@
 #pragma once
 #include "../shared/StateTypeHolder.h"
-#include "t_cmp.h"
 #include <iostream>
 #include <vector>
 
 namespace toast {
-    class State {
+    class CmpState {
         private:
             std::vector<StateTypeHolder> type;
             int stack_frame;
             int offset;
         public:
-            State(StateTypeHolder type, int stack_frame);
+            CmpState(StateTypeHolder type, int stack_frame);
             void set_stack_frame();
             StateTypeHolder get_type();
             int get_frame();

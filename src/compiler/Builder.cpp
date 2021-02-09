@@ -1,9 +1,17 @@
 #include "Builder.h"
+#include "../shared/Instruction.h"
+#include "Statement.h"
+#include "Script.h"
+#include "CompilerException.h"
+#include "CmpState.h"
+#include "ScopeType.h"
+#include "Scope.h"
+#include "t_cmp.h"
 using namespace toast;
-using namespace std;
+using State = CmpState;
 
 Builder::Builder(Script* script) {
-    Scope* global_scope = new Scope(GLOBAL, stack_frame);
+    Scope* global_scope = new Scope(ScopeType::GLOBAL, stack_frame);
     push_scope(global_scope);
     for (Statement statement : script->get_statements()) {
         merge(&instructions, statement.generate_instructions(this));

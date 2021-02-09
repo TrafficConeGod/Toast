@@ -1,8 +1,10 @@
-#include "State.h"
+#include "CmpState.h"
+#include "t_cmp.h"
 using namespace toast;
 using namespace std;
+using State = CmpState;
 
-State::State(StateTypeHolder type, int stack_frame) {
+State::CmpState(StateTypeHolder type, int stack_frame) {
     this->type.push_back(type);
     this->stack_frame = stack_frame;
 }

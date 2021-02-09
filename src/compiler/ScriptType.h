@@ -1,7 +1,7 @@
 #pragma once
 
 namespace toast {
-    enum ScriptType {
+    enum class ScriptType {
         RUNNABLE
     };
 }

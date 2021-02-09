@@ -18,76 +18,76 @@ vector<int> Instruction::get_args() {
 string Instruction::make_human_readable() {
     stringstream stream;
     switch (get_type()) {
-        case PUSH:
+        case InstructionType::PUSH:
             stream << "PUSH";
             break;
-        case POP:
+        case InstructionType::POP:
             stream << "POP";
             break;
-        case SET:
+        case InstructionType::SET:
             stream << "SET";
             break;
-        case MOVE:
+        case InstructionType::MOVE:
             stream << "MOVE";
             break;
-        case CALL:
+        case InstructionType::CALL:
             stream << "CALL";
             break;
-        case EXIT:
+        case InstructionType::EXIT:
             stream << "EXIT";
             break;
-        case FRAME:
+        case InstructionType::FRAME:
             stream << "FRAME";
             break;
-        case BACK:
+        case InstructionType::BACK:
             stream << "BACK";
             break;
-        case SKIP:
+        case InstructionType::SKIP:
             stream << "SKIP";
             break;
-        case ARG:
+        case InstructionType::ARG:
             stream << "ARG";
             break;
-        case RETURN:
+        case InstructionType::RETURN:
             stream << "RETURN";
             break;
-        case MOVE_RETURN:
+        case InstructionType::MOVE_RETURN:
             stream << "MOVE_RETURN";
             break;
-        case ADD:
+        case InstructionType::ADD:
             stream << "ADD";
             break;
-        case SUBTRACT:
+        case InstructionType::SUBTRACT:
             stream << "SUBTRACT";
             break;
-        case MULTIPLY:
+        case InstructionType::MULTIPLY:
             stream << "MULTIPLY";
             break;
-        case DIVIDE:
+        case InstructionType::DIVIDE:
             stream << "DIVIDE";
             break;
-        case EQUALS:
+        case InstructionType::EQUALS:
             stream << "EQUALS";
             break;
-        case IF:
+        case InstructionType::IF:
             stream << "IF";
             break;
-        case LENGTH:
+        case InstructionType::LENGTH:
             stream << "LENGTH";
             break;
-        case STREAM_IN:
+        case InstructionType::STREAM_IN:
             stream << "STREAM_IN";
             break;
-        case STREAM_OUT:
+        case InstructionType::STREAM_OUT:
             stream << "STREAM_OUT";
             break;
-        case MOVE_IN:
+        case InstructionType::MOVE_IN:
             stream << "MOVE_IN";
             break;
-        case MOVE_OUT:
+        case InstructionType::MOVE_OUT:
             stream << "MOVE_OUT";
             break;
-        case DELETE:
+        case InstructionType::DELETE:
             stream << "DELETE";
             break;
         default:

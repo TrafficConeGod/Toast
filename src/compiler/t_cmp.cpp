@@ -1,4 +1,10 @@
 #include "t_cmp.h"
+#include "../shared/StateTypeHolder.h"
+#include "../shared/StateType.h"
+#include "Lexer.h"
+#include "Parser.h"
+#include "Builder.h"
+#include "CompilerException.h"
 using namespace toast;
 using namespace std;
 
@@ -23,7 +29,7 @@ vector<Instruction> toast::generate_instruction_list(string source) {
 
 any toast::parse_val(string literal, StateTypeHolder type) {
     switch (type.get_main_type()) {
-        case INT: {
+        case StateType::INT: {
             stringstream stream(literal);
             int val = 0;
             stream >> val;
@@ -32,7 +38,7 @@ any toast::parse_val(string literal, StateTypeHolder type) {
             }
             return val;
         } break;
-        case BOOL: {
+        case StateType::BOOL: {
             if (literal != "true" && literal != "false") {
                 expected("a boolean", literal);
             }

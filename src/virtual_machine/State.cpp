@@ -41,16 +41,16 @@ bool State::equals(State* state) {
     }
     StateType type_enum = type.get_main_type();
     switch (type_enum) {
-        case INT:
+        case StateType::INT:
             return get_value<int>() == state->get_value<int>();
-        case BOOL:
+        case StateType::BOOL:
             return get_value<bool>() == state->get_value<bool>();
-        case STRING:
+        case StateType::STRING:
             return get_value<string>() == state->get_value<string>();
-        case FUNC:
-        case ARRAY:
+        case StateType::FUNC:
+        case StateType::ARRAY:
             return false;
-        case VOID:
+        case StateType::VOID:
             return true;
         default:
             throw Exception("Unsupported type");

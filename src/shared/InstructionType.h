@@ -1,7 +1,7 @@
 #pragma once
 
 namespace toast {
-    enum InstructionType {
+    enum class InstructionType {
         NONE,
         PUSH,
         POP,

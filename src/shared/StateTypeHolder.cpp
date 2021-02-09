@@ -53,8 +53,8 @@ StateTypeHolder::StateTypeHolder(StateType main_type, vector<StateTypeHolder> su
 StateTypeHolder::StateTypeHolder(vector<int> type_args) {
     main_type = (StateType) type_args[0];
     switch (main_type) {
-        case FUNC:
-        case ARRAY: {
+        case StateType::FUNC:
+        case StateType::ARRAY: {
             for (int i = 1; i < type_args.size(); i++) {
                 int val = type_args[i];
                 // inefficient code incoming
@@ -76,13 +76,13 @@ vector<StateTypeHolder> StateTypeHolder::get_sub_types() {
 
 vector<int> StateTypeHolder::get_args() {
     switch (main_type) {
-        case INT:
-        case BOOL:
-        case STRING:
-        case FLOAT:
-            return { main_type };
+        case StateType::INT:
+        case StateType::BOOL:
+        case StateType::STRING:
+        case StateType::FLOAT:
+            return { (int)main_type };
         default:
-            vector<int> args = { main_type };
+            vector<int> args = { (int)main_type };
             for (StateTypeHolder type : sub_types) {
                 vector<int> sub_args = type.get_args();
                 args.push_back(sub_args.size());

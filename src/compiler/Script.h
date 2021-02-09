@@ -1,11 +1,14 @@
 #pragma once
-#include "ScriptType.h"
 #include "Token.h"
+#include "ScriptType.h"
+#include "StatementType.h"
 #include "Statement.h"
 #include <iostream>
+#include <vector>
 #include <deque>
 
 namespace toast {
+    class Statement;
     class Script {
         private:
             ScriptType type;

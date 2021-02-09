@@ -1,10 +1,11 @@
 #include "Script.h"
+#include "TokenType.h"
 using namespace toast;
 using namespace std;
 
 Script::Script(std::deque<Token>* tokens) {
-    type = RUNNABLE;
-    while (tokens->size() != 0 && tokens->front().get_type() != FILE_END) {
+    type = ScriptType::RUNNABLE;
+    while (tokens->size() != 0 && tokens->front().get_type() != TokenType::FILE_END) {
         Token token = tokens->front();
         statements.push_back(Statement(tokens));
     }
@@ -14,10 +15,10 @@ std::vector<Statement> Script::get_statements() {
     return statements;
 }
 
-void Statement::clean() {
+void Script::clean() {
     std::vector<Statement> cleaned;
     for (Statement statement : statements) {
-        if (statement.get_type() != IGNORE) {
+        if (statement.get_type() != StatementType::IGNORE) {
             statement.clean();
             cleaned.push_back(statement);
             // std::cout << statement.get_type() << " types: {";

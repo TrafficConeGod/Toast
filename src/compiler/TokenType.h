@@ -1,7 +1,7 @@
 #pragma once
 
 namespace toast {
-    enum TokenType {
+    enum class TokenType {
         ILLEGAL,
         FILE_END,
         IDENT,

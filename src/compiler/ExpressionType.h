@@ -1,7 +1,7 @@
 #pragma once
 
 namespace toast {
-    enum ExpressionType {
+    enum class ExpressionType {
         INT,
         BOOL,
         STRING,
@@ -15,12 +15,12 @@ namespace toast {
         SUBTRACT,
         MULTIPLY,
         DIVIDE,
-        IS,
-        NOT_IS,
+        EQUALS,
+        NOT_EQUALS,
         AND,
         OR,
         NOT,
         LENGTH,
-        EX_IGNORE
+        IGNORE
     };
 }

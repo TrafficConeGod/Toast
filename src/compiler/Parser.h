@@ -1,5 +1,4 @@
 #pragma once
-#include "Token.h"
 #include "Script.h"
 #include <iostream>
 #include <deque>

@@ -1,7 +1,7 @@
 #pragma once
+#include "../shared/StateType.h"
 #include "../shared/StateTypeHolder.h"
 #include "Token.h"
-#include "t_cmp.h"
 #include <iostream>
 #include <vector>
 #include <deque>

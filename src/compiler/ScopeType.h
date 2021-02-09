@@ -1,7 +1,7 @@
 #pragma once
 
 namespace toast {
-    enum ScopeType {
+    enum class ScopeType {
         GLOBAL,
         FUNC,
         BLOCK

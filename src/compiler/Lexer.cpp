@@ -1,4 +1,6 @@
 #include "Lexer.h"
+#include "CompilerException.h"
+#include "TokenType.h"
 using namespace toast;
 using namespace std;
 
@@ -8,11 +10,11 @@ Lexer::Lexer(std::string source) {
         handle_char();
     }
     if (tokens.size() > 0) {
-        if (tokens.back().get_type() != FILE_END) {
-            tokens.push_back(Token(FILE_END, ""));
+        if (tokens.back().get_type() != TokenType::FILE_END) {
+            tokens.push_back(Token(TokenType::FILE_END, ""));
         }
     } else {
-        tokens.push_back(Token(FILE_END, ""));
+        tokens.push_back(Token(TokenType::FILE_END, ""));
     }
 }
 
@@ -27,110 +29,110 @@ void Lexer::handle_char() {
         next_ch = source[position + 1];
     }
     std::string literal(1, ch);
-    TokenType type = ILLEGAL;
+    TokenType type = TokenType::ILLEGAL;
     switch (ch) {
         case ' ':
             return;
         case ';':
         case '\n':
-            type = NEW_LINE;
+            type = TokenType::NEW_LINE;
             break;
         case '\u0000':
             literal = "";
-            type = FILE_END;
+            type = TokenType::FILE_END;
             break;
         // small tokens
         case '(':
-            type = LEFT_PAREN;
+            type = TokenType::LEFT_PAREN;
             break;
         case ')':
-            type = RIGHT_PAREN;
+            type = TokenType::RIGHT_PAREN;
             break;
         case '[':
-            type = LEFT_BRACKET;
+            type = TokenType::LEFT_BRACKET;
             break;
         case ']':
-            type = RIGHT_BRACKET;
+            type = TokenType::RIGHT_BRACKET;
             break;
         case '{':
-            type = LEFT_BRACE;
+            type = TokenType::LEFT_BRACE;
             break;
         case '}':
-            type = RIGHT_BRACE;
+            type = TokenType::RIGHT_BRACE;
             break;
         case ',':
-            type = COMMA;
+            type = TokenType::COMMA;
             break;
         case '!':
             if (next_ch == '=') {
                 literal = "!=";
-                type = EXCLAMATION_EQUALS;
+                type = TokenType::EXCLAMATION_EQUALS;
                 position++;
                 break;
             }
-            type = EXCLAMATION;
+            type = TokenType::EXCLAMATION;
             break;
         case '#':
-            type = HASH;
+            type = TokenType::HASH;
             break;
         case '<':
-            type = LEFT_ANGLE;
+            type = TokenType::LEFT_ANGLE;
             break;
         case '>':
-            type = RIGHT_ANGLE;
+            type = TokenType::RIGHT_ANGLE;
             break;
         case '=':
             if (next_ch == '=') {
                 literal = "==";
-                type = DOUBLE_EQUALS;
+                type = TokenType::DOUBLE_EQUALS;
                 position++;
                 break;
             }
-            type = EQUALS;
+            type = TokenType::EQUALS;
             break;
         case '+':
             if (next_ch == '=') {
                 literal = "+=";
-                type = PLUS_EQUALS;
+                type = TokenType::PLUS_EQUALS;
                 position++;
                 break;
             }
             if (next_ch == '+') {
                 literal == "++";
-                type = DOUBLE_PLUS;
+                type = TokenType::DOUBLE_PLUS;
                 position++;
                 break;
             }
-            type = PLUS;
+            type = TokenType::PLUS;
             break;
         case '-':
             if (next_ch == '=') {
                 literal = "-=";
-                type = MINUS_EQUALS;
+                type = TokenType::MINUS_EQUALS;
                 position++;
                 break;
             }
             if (next_ch == '-') {
                 literal == "--";
-                type = DOUBLE_MINUS;
+                type = TokenType::DOUBLE_MINUS;
                 position++;
                 break;
             }
-            type = MINUS;
+            type = TokenType::MINUS;
             break;
         case '*':
             if (next_ch == '=') {
                 literal = "*=";
-                type = TIMES_EQUALS;
+                type = TokenType::TIMES_EQUALS;
                 position++;
                 break;
             }
-            type = TIMES;
+            type = TokenType::TIMES;
             break;
         case '/':
             if (next_ch == '=') {
                 literal = "/=";
-                type = OVER_EQUALS;
+                type = TokenType::OVER_EQUALS;
                 position++;
                 break;
             }
@@ -138,15 +140,15 @@ void Lexer::handle_char() {
                 // comment time
                 literal = "\n";
                 get_and_move_until_char('\n');
-                type = NEW_LINE;
+                type = TokenType::NEW_LINE;
                 break;
             }
-            type = OVER;
+            type = TokenType::OVER;
             break;
         case '&':
             if (next_ch == '&') {
                 literal = "&&";
-                type = DOUBLE_AMPERSAND;
+                type = TokenType::DOUBLE_AMPERSAND;
                 position++;
                 break;
             }
@@ -154,14 +156,14 @@ void Lexer::handle_char() {
         case '|':
             if (next_ch == '|') {
                 literal = "||";
-                type = DOUBLE_VERT_BAR;
+                type = TokenType::DOUBLE_VERT_BAR;
                 position++;
                 break;
             }
             break;
         case '"':
         case '\'': {
-            type = STR_LITERAL;
+            type = TokenType::STR_LITERAL;
             position++;
             literal = get_and_move_until_char(ch);
             break;
@@ -174,21 +176,21 @@ void Lexer::handle_char() {
                 }
                 literal = get_source_until_non_letter();
                 if (literal == "int" || literal == "bool" || literal == "string" || literal == "void" || literal == "array" || literal == "function") {
-                    type = TYPE_IDENT;
+                    type = TokenType::TYPE_IDENT;
                 } else if (literal == "true" || literal == "false") {
-                    type = BOOL_LITERAL;
+                    type = TokenType::BOOL_LITERAL;
                 } else if (literal == "return") {
-                    type = RETURN_WORD;
+                    type = TokenType::RETURN_WORD;
                 } else if (literal == "if") {
-                    type = IF_WORD;
+                    type = TokenType::IF_WORD;
                 } else if (literal == "else") {
-                    type = ELSE_WORD;
+                    type = TokenType::ELSE_WORD;
                 } else if (literal == "while") {
-                    type = WHILE_WORD;
+                    type = TokenType::WHILE_WORD;
                 } else if (literal == "delete") {
-                    type = DELETE_WORD;
+                    type = TokenType::DELETE_WORD;
                 } else {
-                    type = IDENT;
+                    type = TokenType::IDENT;
                 }
             } else if (isdigit(ch)) {
                 // check if we arent already in an int
@@ -196,11 +198,11 @@ void Lexer::handle_char() {
                     return;
                 }
                 literal = get_source_until_non_digit();
-                type = INT_LITERAL;
+                type = TokenType::INT_LITERAL;
             }
         } break;
     }
-    if (type == ILLEGAL) {
+    if (type == TokenType::ILLEGAL) {
         std::cout << "Illegal token " << literal << "at: " << position << std::endl;
         throw CompilerException();
     }

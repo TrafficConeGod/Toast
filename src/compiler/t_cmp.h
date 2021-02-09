@@ -1,17 +1,14 @@
 #pragma once
 #include "../shared/Instruction.h"
 #include "../shared/StateTypeHolder.h"
-#include "CompilerException.h"
-#include "Token.h"
-#include "Lexer.h"
-#include "Parser.h"
-#include "Builder.h"
 #include <iostream>
 #include <vector>
 #include <deque>
 #include <any>
 
 namespace toast {
+    class Builder;
+    class Parser;
     std::vector<Instruction> generate_instruction_list(std::string source);
     std::string make_human_readable(std::vector<Instruction>);
     std::any parse_val(std::string literal, StateTypeHolder type);

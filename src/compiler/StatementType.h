@@ -1,7 +1,7 @@
 #pragma once
 
 namespace toast {
-    enum StatementType {
+    enum class StatementType {
         COMPOUND,
         IF,
         ELSE,

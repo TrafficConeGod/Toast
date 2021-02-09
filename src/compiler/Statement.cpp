@@ -1,43 +1,55 @@
 #include "Statement.h"
+#include "../shared/Instruction.h"
+#include "StatementType.h"
+#include "Token.h"
+#include "TokenType.h"
+#include "CmpState.h"
+#include "Scope.h"
+#include "ExpressionType.h"
+#include "Expression.h"
+#include "CompilerException.h"
+#include "CmpState.h"
+#include "t_cmp.h"
 using namespace toast;
 using namespace std;
+using State = CmpState;
 
 Statement::Statement(std::deque<Token>* tokens) {
     Token token = tokens->front();
     switch (token.get_type()) {
         // Compound
-        case LEFT_BRACE: {
-            type = COMPOUND;
+        case TokenType::LEFT_BRACE: {
+            type = StatementType::COMPOUND;
             tokens->pop_front();
             do {
                 Token token = tokens->front();
                 statements.push_back(Statement(tokens));
-            } while (tokens->front().get_type() != RIGHT_BRACE);
+            } while (tokens->front().get_type() != TokenType::RIGHT_BRACE);
             tokens->pop_front();
         } break;
         // If statement
-        case IF_WORD: {
-            type = IF;
+        case TokenType::IF_WORD: {
+            type = StatementType::IF;
             tokens->pop_front();
             expressions.push_back(Expression(tokens));
             statements.push_back(Statement(tokens));
         } break;
         // else if statement
-        case ELSE_WORD: {
+        case TokenType::ELSE_WORD: {
             tokens->pop_front();
             Token next = tokens->front();
-            if (next.get_type() == IF_WORD) {
-                type = ELSE_IF;
+            if (next.get_type() == TokenType::IF_WORD) {
+                type = StatementType::ELSE_IF;
                 tokens->pop_front();
                 expressions.push_back(Expression(tokens));
             } else {
-                type = ELSE;
+                type = StatementType::ELSE;
             }
             statements.push_back(Statement(tokens));
         } break;
         // Return statement
-        case RETURN_WORD: {
-            type = RETURN;
+        case TokenType::RETURN_WORD: {
+            type = StatementType::RETURN;
             tokens->pop_front();
             expressions.push_back(Expression(tokens));
             Token end = tokens->front();
@@ -46,8 +58,8 @@ Statement::Statement(std::deque<Token>* tokens) {
             }
         } break;
         // Delete statement
-        case DELETE_WORD: {
-            type = DELETE;
+        case TokenType::DELETE_WORD: {
+            type = StatementType::DELETE;
             tokens->pop_front();
             expressions.push_back(Expression(tokens));
             Token end = tokens->front();
@@ -56,37 +68,37 @@ Statement::Statement(std::deque<Token>* tokens) {
             }
         } break;
         // type ident = expression
-        case TYPE_IDENT: {
+        case TokenType::TYPE_IDENT: {
             type_expressions.push_back(TypeExpression(tokens));
             Token ident = tokens->front();
-            if (ident.get_type() != IDENT) {
+            if (ident.get_type() != TokenType::IDENT) {
                 expected("identifier", ident.get_literal());
             }
             identifiers.push_back(ident.get_literal());
             tokens->pop_front();
             Token middle = tokens->front();
             if (middle.is_end()) {
-                type = VAR_DECLARE;
+                type = StatementType::VAR_DECLARE;
                 break;
             }
-            if (middle.get_type() == LEFT_PAREN) {
-                type = FUNCTION_DECLARE;
+            if (middle.get_type() == TokenType::LEFT_PAREN) {
+                type = StatementType::FUNCTION_DECLARE;
                 TypeExpression return_expr = type_expressions.back();
                 TypeExpression func_expr = TypeExpression(StateType::FUNC);
                 func_expr.add_expression(return_expr);
                 type_expressions[0] = func_expr;
                 tokens->pop_front();
-                if (tokens->front().get_type() != RIGHT_PAREN) {
+                if (tokens->front().get_type() != TokenType::RIGHT_PAREN) {
                     for (;;) {
                         func_expr.add_expression(TypeExpression(tokens));
                         Token ident = tokens->front();
-                        if (ident.get_type() != IDENT) {
+                        if (ident.get_type() != TokenType::IDENT) {
                             expected("identifier", ident.get_literal());
                             throw CompilerException();
                         }
                         identifiers.push_back(ident.get_literal());
                         tokens->pop_front();
-                        if (tokens->front().get_type() == RIGHT_PAREN) {
+                        if (tokens->front().get_type() == TokenType::RIGHT_PAREN) {
                             break;
                         }
                         tokens->pop_front();
@@ -95,15 +107,15 @@ Statement::Statement(std::deque<Token>* tokens) {
                 tokens->pop_front();
                 Token end = tokens->front();
                 if (!end.is_end()) {
-                    type = FUNCTION_CREATE;
+                    type = StatementType::FUNCTION_CREATE;
                     statements.push_back(Statement(tokens));
                 }
                 break;
             }
-            if (middle.get_type() != EQUALS) {
+            if (middle.get_type() != TokenType::EQUALS) {
                 expected("= or (", middle.get_literal());
             }
-            type = VAR_CREATE;
+            type = StatementType::VAR_CREATE;
             tokens->pop_front();
             expressions.push_back(Expression(tokens));
             Token end = tokens->front();
@@ -111,9 +123,9 @@ Statement::Statement(std::deque<Token>* tokens) {
                 expected("end", end.get_literal());
             }
         } break;
-        case FILE_END:
-        case NEW_LINE: {
-            type = IGNORE;
+        case TokenType::FILE_END:
+        case TokenType::NEW_LINE: {
+            type = StatementType::IGNORE;
             tokens->pop_front();
         } break;
         // expression = expression
@@ -121,45 +133,45 @@ Statement::Statement(std::deque<Token>* tokens) {
             expressions.push_back(tokens);
             Token middle = tokens->front();
             switch (middle.get_type()) {
-                case EQUALS:
-                    type = SET;
+                case TokenType::EQUALS:
+                    type = StatementType::SET;
                     break;
-                case PLUS_EQUALS:
-                    type = ADD_SET;
+                case TokenType::PLUS_EQUALS:
+                    type = StatementType::ADD_SET;
                     break;
-                case MINUS_EQUALS:
-                    type = SUBTRACT_SET;
+                case TokenType::MINUS_EQUALS:
+                    type = StatementType::SUBTRACT_SET;
                     break;
-                case TIMES_EQUALS:
-                    type = MULTIPLY_SET;
+                case TokenType::TIMES_EQUALS:
+                    type = StatementType::MULTIPLY_SET;
                     break;
-                case OVER_EQUALS:
-                    type = DIVIDE_SET;
+                case TokenType::OVER_EQUALS:
+                    type = StatementType::DIVIDE_SET;
                     break;
-                case DOUBLE_PLUS:
-                    type = INCREMENT;
+                case TokenType::DOUBLE_PLUS:
+                    type = StatementType::INCREMENT;
                     break;
-                case DOUBLE_MINUS:
-                    type = DECREMENT;
+                case TokenType::DOUBLE_MINUS:
+                    type = StatementType::DECREMENT;
                     break;
-                case LEFT_ANGLE: {
+                case TokenType::LEFT_ANGLE: {
                     tokens->pop_front();
                     Token next = tokens->front();
-                    if (next.get_type() != LEFT_ANGLE) {
+                    if (next.get_type() != TokenType::LEFT_ANGLE) {
                         expected("<", next.get_literal());
                     }
-                    type = STREAM_INTO;
+                    type = StatementType::STREAM_INTO;
                 } break;
-                case RIGHT_ANGLE: {
+                case TokenType::RIGHT_ANGLE: {
                     tokens->pop_front();
                     Token next = tokens->front();
-                    if (next.get_type() != RIGHT_ANGLE) {
+                    if (next.get_type() != TokenType::RIGHT_ANGLE) {
                         expected(">", next.get_literal());
                     }
-                    type = STREAM_OUT;
+                    type = StatementType::STREAM_OUT;
                 } break;
-                case RIGHT_PAREN:
-                    type = EMPTY;
+                case TokenType::RIGHT_PAREN:
+                    type = StatementType::EMPTY;
                     break;
                 default:
                     // // try to make an expression
@@ -193,7 +205,7 @@ void Statement::clean() {
     {
         std::vector<Statement> cleaned;
         for (Statement statement : statements) {
-            if (statement.get_type() != IGNORE) {
+            if (statement.get_type() != StatementType::IGNORE) {
                 statement.clean();
                 cleaned.push_back(statement);
             }
@@ -203,7 +215,7 @@ void Statement::clean() {
     {
         std::vector<Expression> cleaned;
         for (Expression expression : expressions) {
-            if (expression.get_type() != EX_IGNORE) {
+            if (expression.get_type() != ExpressionType::IGNORE) {
                 expression.clean();
                 cleaned.push_back(expression);
             }
@@ -235,10 +247,10 @@ void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructi
 std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
     std::vector<Instruction> instructions;
     switch (type) {
-        case VAR_CREATE:
-        case VAR_DECLARE:
-        case FUNCTION_CREATE:
-        case FUNCTION_DECLARE: {
+        case StatementType::VAR_CREATE:
+        case StatementType::VAR_DECLARE:
+        case StatementType::FUNCTION_CREATE:
+        case StatementType::FUNCTION_DECLARE: {
             TypeExpression type_expr = type_expressions.back();
             instructions.push_back(Instruction(InstructionType::PUSH, type_expr.get_type_holder().get_args()));
             std::string ident = identifiers.back();
@@ -247,12 +259,12 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             }
             builder->push_state(ident, new State(type_expr.get_type_holder(), builder->get_frame()));
             State* state = builder->get_state(ident);
-            if (type == VAR_CREATE) {
+            if (type == StatementType::VAR_CREATE) {
                 Expression expr = expressions.back();
                 handle_set(builder, &instructions, state, expr);
-            } else if (type == FUNCTION_CREATE) {
+            } else if (type == StatementType::FUNCTION_CREATE) {
                 instructions.push_back(Instruction(InstructionType::SET, { frame_negate(builder->get_frame()), 0 }));
-                Scope* scope = new Scope(FUNC, builder->get_frame() + 1);
+                Scope* scope = new Scope(ScopeType::FUNC, builder->get_frame() + 1);
                 builder->push_scope(scope);
                 Statement sub_statement = statements.back();
                 std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
@@ -263,21 +275,21 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
                 delete builder->pop_scope();
             }
         } break;
-        case COMPOUND: {
+        case StatementType::COMPOUND: {
             for (Statement sub_statement : statements) {
                 merge(&instructions, sub_statement.generate_instructions(builder));
             }
         } break;
-        case ADD_SET:
-        case SUBTRACT_SET:
-        case MULTIPLY_SET:
-        case DIVIDE_SET:
-        case SET: {
+        case StatementType::ADD_SET:
+        case StatementType::SUBTRACT_SET:
+        case StatementType::MULTIPLY_SET:
+        case StatementType::DIVIDE_SET:
+        case StatementType::SET: {
             Expression expr = expressions.front();
             Expression expr_from = expressions[1];
             merge(&instructions, expr.generate_push_instructions(builder));
             State* state = expr.get_state(builder);
-            if (type == SET) {
+            if (type == StatementType::SET) {
                 handle_set(builder, &instructions, state, expr_from);
             } else {
                 std::vector<int> args = state->get_args();

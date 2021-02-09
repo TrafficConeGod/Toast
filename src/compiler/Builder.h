@@ -1,9 +1,10 @@
 #pragma once
-#include "Script.h"
 #include "Scope.h"
 #include <iostream>
+#include <vector>
 
 namespace toast {
+    class Script;
     class Builder {
         private:
             Script* script;
@@ -16,11 +17,11 @@ namespace toast {
             ~Builder();
             std::vector<Instruction> get_instructions();
             bool has_state(std::string ident);
-            int get_state_offset(State* state);
-            State* get_state(std::string ident);
+            int get_state_offset(CmpState* state);
+            CmpState* get_state(std::string ident);
             int get_frame();
-            void push_state(std::string ident, State* state);
-            void update_state(State* state);
+            void push_state(std::string ident, CmpState* state);
+            void update_state(CmpState* state);
             void add_temp_offset();
             void sub_temp_offset();
             int get_temp_offset();

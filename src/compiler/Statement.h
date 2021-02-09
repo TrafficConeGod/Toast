@@ -1,11 +1,16 @@
 #pragma once
 #include "../shared/Instruction.h"
-#include "Expression.h"
-#include "TypeExpression.h"
+#include "ExpressionType.h"
 #include "StatementType.h"
 #include "Builder.h"
+#include "CmpState.h"
+#include "Token.h"
+#include "TypeExpression.h"
+#include <vector>
+#include <deque>
 
 namespace toast {
+    class Expression;
     class Statement {
         private:
             StatementType type;
@@ -13,7 +18,7 @@ namespace toast {
             std::vector<TypeExpression> type_expressions;
             std::vector<Expression> expressions;
             std::vector<std::string> identifiers;
-            void handle_set(Builder* builder, std::vector<toast::Instruction>* instructions, State* state, Expression expr);
+            void handle_set(Builder* builder, std::vector<toast::Instruction>* instructions, CmpState* state, Expression expr);
         public:
             Statement(std::deque<Token>* tokens);
             StatementType get_type();
@@ -25,3 +30,5 @@ namespace toast {
             void clean();
     };
 }
+
+#include "Expression.h"

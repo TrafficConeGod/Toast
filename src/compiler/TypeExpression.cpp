@@ -1,4 +1,6 @@
 #include "TypeExpression.h"
+#include "TokenType.h"
+#include "t_cmp.h"
 using namespace toast;
 using namespace std;
 
@@ -28,28 +30,28 @@ TypeExpression::TypeExpression(std::deque<Token>* tokens) {
     tokens->pop_front();
     Token next = tokens->front();
     TokenType next_type = next.get_type();
-    if (next_type == IDENT || next_type == RIGHT_ANGLE || next_type == LEFT_PAREN) {
+    if (next_type == TokenType::IDENT || next_type == TokenType::RIGHT_ANGLE || next_type == TokenType::LEFT_PAREN) {
         return;
     }
     switch (next.get_type()) {
-        case LEFT_BRACKET: {
+        case TokenType::LEFT_BRACKET: {
             tokens->pop_front();
-            if (tokens->front().get_type() != RIGHT_BRACKET) {
+            if (tokens->front().get_type() != TokenType::RIGHT_BRACKET) {
                 expected("]", tokens->front().get_literal());
             }
             tokens->pop_front();
             type_expressions.push_back(TypeExpression(type));
             type = StateType::ARRAY;
         } break;
-        case LEFT_ANGLE: {
+        case TokenType::LEFT_ANGLE: {
             tokens->pop_front();
-            if (tokens->front().get_type() != RIGHT_ANGLE) {
+            if (tokens->front().get_type() != TokenType::RIGHT_ANGLE) {
                 for (;;) {
                     Token token = tokens->front();
                     type_expressions.push_back(TypeExpression(tokens));
                     Token next = tokens->front();
                     tokens->pop_front();
-                    if (next.get_type() == RIGHT_ANGLE) {
+                    if (next.get_type() == TokenType::RIGHT_ANGLE) {
                         break;
                     }
                 }
@@ -71,10 +73,10 @@ std::vector<TypeExpression> TypeExpression::get_type_expressions() {
 
 StateTypeHolder TypeExpression::get_type_holder() {
     switch (type) {
-        case INT:
-        case BOOL:
-        case STRING:
-        case FLOAT:
+        case StateType::INT:
+        case StateType::BOOL:
+        case StateType::STRING:
+        case StateType::FLOAT:
             return StateTypeHolder(type);
         default:
             std::vector<StateTypeHolder> sub_types = {};

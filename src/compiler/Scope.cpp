@@ -1,6 +1,8 @@
 #include "Scope.h"
+#include <algorithm>
 using namespace toast;
 using namespace std;
+using State = CmpState;
 
 Scope::Scope(ScopeType type, int stack_frame) {
     this->type = type;
@@ -71,7 +73,7 @@ int Scope::get_frame() {
 std::vector<Instruction> Scope::get_instructions() {
     std::vector<Instruction> instructions;
     for (State* state : state_stack) {
-        instructions.push_back(Instruction(POP, {}));
+        instructions.push_back(Instruction(InstructionType::POP, {}));
     }
     return instructions;
 }

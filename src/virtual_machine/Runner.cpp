@@ -41,10 +41,10 @@ State* Runner::get_state(int val, int offset) {
         State* state = new State(type);
         state->set_temp(true);
         switch (state->get_type().get_main_type()) {
-            case INT: {
+            case StateType::INT: {
                 state->set_value<int>(offset);
             } break;
-            case BOOL: {
+            case StateType::BOOL: {
                 state->set_value<bool>(offset);
             } break;
             default: {
@@ -72,16 +72,16 @@ State* Runner::push_state(StateTypeHolder type) {
 State* Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    cout << "Popped state of type " << state->get_type().get_main_type();
+    cout << "Popped state of type " << (int)state->get_type().get_main_type();
     if (!state->is_empty()) {
         switch (state->get_type().get_main_type()) {
-            case INT:
+            case StateType::INT:
                 cout << " and value " << state->get_value<int>();
                 break;
-            case BOOL:
+            case StateType::BOOL:
                 cout << " and value " << state->get_value<bool>();
                 break;
-            case STRING:
+            case StateType::STRING:
                 cout << " and value " << state->get_value<string>();
                 break;
         }
@@ -96,29 +96,29 @@ void Runner::handle_instruction() {
     vector<int> args = instruction.get_args();
     cout << frame_key << " " << instruction.make_human_readable();
     switch (type) {
-        case PUSH: {
+        case InstructionType::PUSH: {
             StateTypeHolder type(args);
             State* state = push_state(type);
         } break;
-        case POP: {
+        case InstructionType::POP: {
             delete pop_state();
         } break;
-        case SET: {
+        case InstructionType::SET: {
             State* state = get_state(args[0], args[1]);
             switch (state->get_type().get_main_type()) {
-                case INT: {
+                case StateType::INT: {
                     state->set_value<int>(args[2]);
                 } break;
-                case BOOL: {
+                case StateType::BOOL: {
                     state->set_value<bool>(args[2]);
                 } break;
-                case FUNC: {
+                case StateType::FUNC: {
                     state->set_value<int>(position + 1);
                 } break;
-                case STRING: {
+                case StateType::STRING: {
                     state->set_value<string>(instruction.get_string());
                 } break;
-                case ARRAY: {
+                case StateType::ARRAY: {
                     StateArray* array = new StateArray();
                     state->set_value<StateArray*>(array);
                 } break;
@@ -128,17 +128,17 @@ void Runner::handle_instruction() {
             }
             // state->clean();
         } break;
-        case SKIP: {
+        case InstructionType::SKIP: {
             position += args[0];
         } break;
-        case MOVE: {
+        case InstructionType::MOVE: {
             State* state = get_state(args[0], args[1]);
             State* from = get_state(args[2], args[3]);
             state->move_value_from(from);
             state->clean();
             from->clean();
         } break;
-        case CALL: {
+        case InstructionType::CALL: {
             State* state = get_state(args[0], args[1]);
             return_stack.push_back(position);
             position = state->get_value<int>();
@@ -148,38 +148,38 @@ void Runner::handle_instruction() {
             }
             state->clean();
         } break;
-        case EXIT: {
+        case InstructionType::EXIT: {
             position = return_stack.back();
             return_stack.pop_back();
         } break;
-        case FRAME: {
+        case InstructionType::FRAME: {
             int frame_key = args[0];
             set_frame(frame_key, true);
         } break;
-        case BACK: {
+        case InstructionType::BACK: {
             Frame* frame = frames[frame_key];
             frames.erase(frame_key);
             set_frame(frame->get_return(), false);
             delete frame;
         } break;
-        case ARG: {
+        case InstructionType::ARG: {
             State* move_into = get_state(args[0], args[1]);
             State* arg_state = call_args.front();
             call_args.pop_front();
             move_into->move_value_from(arg_state);
             arg_state->clean();
         } break;
-        case RETURN: {
+        case InstructionType::RETURN: {
             return_state = get_state(args[0], args[1]);
             // later add skipping code stuff
         } break;
-        case MOVE_RETURN: {
+        case InstructionType::MOVE_RETURN: {
             State* move_to = get_state(args[0], args[1]);
             move_to->move_value_from(return_state);
             return_state->clean();
             move_to->clean();
         } break;
-        case EQUALS: {
+        case InstructionType::EQUALS: {
             State* move_into = get_state(args[0], args[1]);
             State* equals_1 = get_state(args[2], args[3]);
             State* equals_2 = get_state(args[4], args[5]);
@@ -187,24 +187,24 @@ void Runner::handle_instruction() {
             equals_1->clean();
             equals_2->clean();
         } break;
-        case ADD:
-        case SUBTRACT:
-        case MULTIPLY:
-        case DIVIDE: {
+        case InstructionType::ADD:
+        case InstructionType::SUBTRACT:
+        case InstructionType::MULTIPLY:
+        case InstructionType::DIVIDE: {
             State* move_into = get_state(args[0], args[1]);
             State* op_1_state = get_state(args[2], args[3]);
             State* op_2_state = get_state(args[4], args[5]);
             int val = op_1_state->get_value<int>();
             int val_2 = op_2_state->get_value<int>();
             switch (type) {
-                case ADD: val += val_2; break;
-                case SUBTRACT: val -= val_2; break;
-                case MULTIPLY: val *= val_2; break;
-                case DIVIDE: val /= val_2; break;
+                case InstructionType::ADD: val += val_2; break;
+                case InstructionType::SUBTRACT: val -= val_2; break;
+                case InstructionType::MULTIPLY: val *= val_2; break;
+                case InstructionType::DIVIDE: val /= val_2; break;
             }
             move_into->set_value<int>(val);
         } break;
-        case IF: {
+        case InstructionType::IF: {
             State* state = get_state(args[0], args[1]);
             bool val = state->get_value<bool>();
             if (val) {
@@ -212,26 +212,26 @@ void Runner::handle_instruction() {
             }
             state->clean();
         } break;
-        case LENGTH: {
+        case InstructionType::LENGTH: {
             State* move_into = get_state(args[0], args[1]);
             State* state = get_state(args[2], args[3]);
             switch (state->get_type().get_main_type()) {
-                case STRING: {
+                case StateType::STRING: {
                     string string = state->get_value<std::string>();
                     move_into->set_value<int>(string.size());
                 } break;
-                case ARRAY: {
+                case StateType::ARRAY: {
                     StateArray* array = state->get_value<StateArray*>();
                     move_into->set_value<int>(array->get_length());
                 } break;
             }
             state->clean();
         } break;
-        case STREAM_IN: {
+        case InstructionType::STREAM_IN: {
             State* stream_into = get_state(args[0], args[1]);
             State* stream_from = get_state(args[2], args[3]);
             switch (stream_into->get_type().get_main_type()) {
-                case STRING: {
+                case StateType::STRING: {
                     stringstream stream;
                     string into = stream_into->get_value<string>();
                     string from = stream_from->get_value<string>();
@@ -239,7 +239,7 @@ void Runner::handle_instruction() {
                     stream << from;
                     stream_into->set_value<string>(stream.str());
                 } break;
-                case ARRAY: {
+                case StateType::ARRAY: {
                     StateArray* array = stream_into->get_value<StateArray*>();
                     // make a clone because if the state gets popped out of scope bad things will happen
                     State* state_clone = stream_from->clone();
@@ -252,7 +252,7 @@ void Runner::handle_instruction() {
             }
             stream_from->clean();
         } break;
-        case STREAM_OUT: {
+        case InstructionType::STREAM_OUT: {
             State* stream_from = get_state(args[0], args[1]);
             bool has_stream_into = false;
             State* stream_into;
@@ -267,10 +267,10 @@ void Runner::handle_instruction() {
             }
             delete state;
         } break;
-        case DELETE: {
+        case InstructionType::DELETE: {
             State* state = get_state(args[0], args[1]);
             switch (state->get_type().get_main_type()) {
-                case ARRAY: {
+                case StateType::ARRAY: {
                     StateArray* array = state->get_value<StateArray*>();
                     delete array;
                 } break;

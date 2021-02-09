@@ -15,5 +15,5 @@ std::string Token::get_literal() {
 }
 
 bool Token::is_end() {
-    return get_type() == NEW_LINE || get_type() == FILE_END || get_type() == ILLEGAL;
+    return get_type() == TokenType::NEW_LINE || get_type() == TokenType::FILE_END || get_type() == TokenType::ILLEGAL;
 }

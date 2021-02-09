@@ -1,13 +1,16 @@
 #pragma once
-#include "../shared/StateType.h"
+#include "../shared/Instruction.h"
+#include "../shared/StateTypeHolder.h"
 #include "ExpressionType.h"
-#include "Statement.h"
 #include "TypeExpression.h"
+#include "Builder.h"
 #include <iostream>
 #include <vector>
 #include <deque>
+#include <any>
 
 namespace toast {
+    class Statement;
     class Expression {
         private:
             ExpressionType type;
@@ -27,24 +30,15 @@ namespace toast {
             std::vector<std::string> get_identifiers();
             std::vector<std::any> get_values();
             void clean();
-            bool can_be_set() {
-                switch (type) {
-                    case INT:
-                    case BOOL:
-                    case STRING:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
+            bool can_be_set();
             int get_value();
             std::string get_string_value();
             std::vector<toast::Instruction> generate_push_instructions(Builder* builder);
             std::vector<toast::Instruction> generate_pop_instructions(Builder* builder);
             std::vector<int> get_move_args(Builder* builder);
             toast::StateTypeHolder get_type_holder(Builder* builder);
-            void check_type(Builder* builder, State* state);
-            State* get_state(Builder* builder);
+            void check_type(Builder* builder, CmpState* state);
+            CmpState* get_state(Builder* builder);
             // bool can_be_quick_moved() {
             //     switch (type) {
             //         case INT:
