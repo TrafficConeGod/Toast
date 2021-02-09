@@ -3,7 +3,7 @@
 #include "t_cmp.h"
 using namespace toast;
 
-TypeExpression::TypeExpression(toast::StateType type) {
+TypeExpression::TypeExpression(StateType type) {
     this->type = type;
 }
 

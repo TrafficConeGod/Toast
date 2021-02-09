@@ -5,5 +5,5 @@ using namespace toast;
 State* print(State* msg_state) {
     std::string msg = msg_state->get_cpp_string();
     std::cout << msg;
-    return new State(toast::StateTypeHolder(StateType::VOID));
+    return new State(StateTypeHolder(StateType::VOID));
 }

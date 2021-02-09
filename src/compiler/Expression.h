@@ -33,10 +33,10 @@ namespace toast {
             bool can_be_set();
             int get_value();
             std::string get_string_value();
-            std::vector<toast::Instruction> generate_push_instructions(Builder* builder);
-            std::vector<toast::Instruction> generate_pop_instructions(Builder* builder);
+            std::vector<Instruction> generate_push_instructions(Builder* builder);
+            std::vector<Instruction> generate_pop_instructions(Builder* builder);
             std::vector<int> get_move_args(Builder* builder);
-            toast::StateTypeHolder get_type_holder(Builder* builder);
+            StateTypeHolder get_type_holder(Builder* builder);
             void check_type(Builder* builder, CmpState* state);
             CmpState* get_state(Builder* builder);
             // bool can_be_quick_moved() {

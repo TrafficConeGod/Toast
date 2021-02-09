@@ -76,7 +76,7 @@ int toast::frame_negate(int frame_key) {
     return (frame_key * -1) - 1;
 }
 
-std::string toast::make_human_readable(std::vector<toast::Instruction> instructions) {
+std::string toast::make_human_readable(std::vector<Instruction> instructions) {
     std::stringstream stream;
     for (int i = 0; i < instructions.size(); i++) {
         stream << instructions[i].make_human_readable();
