@@ -1,8 +1,7 @@
 #include "Instruction.h"
 using namespace toast;
-using namespace std;
 
-Instruction::Instruction(InstructionType type, vector<int> args) {
+Instruction::Instruction(InstructionType type, std::vector<int> args) {
     this->type = type;
     this->args = args;
 }
@@ -11,12 +10,12 @@ InstructionType Instruction::get_type() {
     return type;
 }
 
-vector<int> Instruction::get_args() {
+std::vector<int> Instruction::get_args() {
     return args;
 }
 
-string Instruction::make_human_readable() {
-    stringstream stream;
+std::string Instruction::make_human_readable() {
+    std::stringstream stream;
     switch (get_type()) {
         case InstructionType::PUSH:
             stream << "PUSH";
@@ -97,16 +96,16 @@ string Instruction::make_human_readable() {
         int arg = get_args()[j];
         stream << " " << arg;
     }
-    stream << endl;
+    stream << std::endl;
     return stream.str();
 }
 
-Instruction::Instruction(InstructionType type, vector<int> args, string str) {
+Instruction::Instruction(InstructionType type, std::vector<int> args, std::string str) {
     this->type = type;
     this->args = args;
     this->str = str;
 }
 
-string Instruction::get_string() {
+std::string Instruction::get_string() {
     return str;
 }

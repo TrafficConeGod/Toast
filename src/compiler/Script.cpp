@@ -1,7 +1,6 @@
 #include "Script.h"
 #include "TokenType.h"
 using namespace toast;
-using namespace std;
 
 Script::Script(std::deque<Token>* tokens) {
     type = ScriptType::RUNNABLE;

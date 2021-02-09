@@ -1,6 +1,6 @@
 #include "StateArray.h"
 using namespace toast;
-using namespace std;
+
 
 StateArray::StateArray() {
     

@@ -1,6 +1,5 @@
 #include "Frame.h"
 using namespace toast;
-using namespace std;
 
 Frame::~Frame() {
     for (Stack* stack : stacks) {

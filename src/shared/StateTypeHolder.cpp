@@ -1,12 +1,11 @@
 #include "StateTypeHolder.h"
 using namespace toast;
-using namespace std;
 
 StateTypeHolder::StateTypeHolder(StateType main_type) {
     this->main_type = main_type;
 }
 
-// void StateTypeHolder::func_init(StateTypeHolder return_type, vector<StateTypeHolder> func_args) {
+// void StateTypeHolder::func_init(StateTypeHolder return_type, std::vector<StateTypeHolder> func_args) {
 //     this->return_type.push_back(return_type);
 //     this->func_args = func_args;
 // }
@@ -19,7 +18,7 @@ StateType StateTypeHolder::get_main_type() {
 //     return return_type.back();
 // }
 
-// vector<StateTypeHolder> StateTypeHolder::get_func_args() {
+// std::vector<StateTypeHolder> StateTypeHolder::get_func_args() {
 //     return func_args;
 // }
 
@@ -45,12 +44,12 @@ bool StateTypeHolder::equals(StateType type) {
 }
 
 
-StateTypeHolder::StateTypeHolder(StateType main_type, vector<StateTypeHolder> sub_types) {
+StateTypeHolder::StateTypeHolder(StateType main_type, std::vector<StateTypeHolder> sub_types) {
     this->main_type = main_type;
     this->sub_types = sub_types;
 }
 
-StateTypeHolder::StateTypeHolder(vector<int> type_args) {
+StateTypeHolder::StateTypeHolder(std::vector<int> type_args) {
     main_type = (StateType) type_args[0];
     switch (main_type) {
         case StateType::FUNC:
@@ -58,8 +57,8 @@ StateTypeHolder::StateTypeHolder(vector<int> type_args) {
             for (int i = 1; i < type_args.size(); i++) {
                 int val = type_args[i];
                 // inefficient code incoming
-                // fill the vector with the section
-                vector<int> sub_args;
+                // fill the std::vector with the section
+                std::vector<int> sub_args;
                 for (int j = i + 1; j < i + 1 + val; j++) {
                     sub_args.push_back(type_args[j]);
                 }
@@ -70,11 +69,11 @@ StateTypeHolder::StateTypeHolder(vector<int> type_args) {
     }
 }
 
-vector<StateTypeHolder> StateTypeHolder::get_sub_types() {
+std::vector<StateTypeHolder> StateTypeHolder::get_sub_types() {
     return sub_types;
 }
 
-vector<int> StateTypeHolder::get_args() {
+std::vector<int> StateTypeHolder::get_args() {
     switch (main_type) {
         case StateType::INT:
         case StateType::BOOL:
@@ -82,9 +81,9 @@ vector<int> StateTypeHolder::get_args() {
         case StateType::FLOAT:
             return { (int)main_type };
         default:
-            vector<int> args = { (int)main_type };
+            std::vector<int> args = { (int)main_type };
             for (StateTypeHolder type : sub_types) {
-                vector<int> sub_args = type.get_args();
+                std::vector<int> sub_args = type.get_args();
                 args.push_back(sub_args.size());
                 for (int sub_arg : sub_args) {
                     args.push_back(sub_arg);

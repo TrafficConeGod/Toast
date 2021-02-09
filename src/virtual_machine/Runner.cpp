@@ -1,8 +1,7 @@
 #include "Runner.h"
 using namespace toast;
-using namespace std;
 
-Runner::Runner(vector<Instruction> instructions) {
+Runner::Runner(std::vector<Instruction> instructions) {
     set_frame(0, true);
     this->instructions = instructions;
     for (position = 0; position < instructions.size(); position++) {
@@ -11,7 +10,7 @@ Runner::Runner(vector<Instruction> instructions) {
 }
 
 Runner::~Runner() {
-    map<int, Frame*>::iterator it;
+    std::map<int, Frame*>::iterator it;
     for (it = frames.begin(); it != frames.end(); it++) {
         delete it->second;
     }
@@ -72,29 +71,29 @@ State* Runner::push_state(StateTypeHolder type) {
 State* Runner::pop_state() {
     Frame* frame = frames[frame_key];
     State* state = frame->pop_state();
-    cout << "Popped state of type " << (int)state->get_type().get_main_type();
+    std::cout << "Popped state of type " << (int)state->get_type().get_main_type();
     if (!state->is_empty()) {
         switch (state->get_type().get_main_type()) {
             case StateType::INT:
-                cout << " and value " << state->get_value<int>();
+                std::cout << " and value " << state->get_value<int>();
                 break;
             case StateType::BOOL:
-                cout << " and value " << state->get_value<bool>();
+                std::cout << " and value " << state->get_value<bool>();
                 break;
             case StateType::STRING:
-                cout << " and value " << state->get_value<string>();
+                std::cout << " and value " << state->get_value<std::string>();
                 break;
         }
     }
-    cout << endl;
+    std::cout << std::endl;
     return state;
 }
 
 void Runner::handle_instruction() {
     Instruction instruction = instructions[position];
     InstructionType type = instruction.get_type();
-    vector<int> args = instruction.get_args();
-    cout << frame_key << " " << instruction.make_human_readable();
+    std::vector<int> args = instruction.get_args();
+    std::cout << frame_key << " " << instruction.make_human_readable();
     switch (type) {
         case InstructionType::PUSH: {
             StateTypeHolder type(args);
@@ -116,7 +115,7 @@ void Runner::handle_instruction() {
                     state->set_value<int>(position + 1);
                 } break;
                 case StateType::STRING: {
-                    state->set_value<string>(instruction.get_string());
+                    state->set_value<std::string>(instruction.get_string());
                 } break;
                 case StateType::ARRAY: {
                     StateArray* array = new StateArray();
@@ -217,7 +216,7 @@ void Runner::handle_instruction() {
             State* state = get_state(args[2], args[3]);
             switch (state->get_type().get_main_type()) {
                 case StateType::STRING: {
-                    string string = state->get_value<std::string>();
+                    std::string string = state->get_value<std::string>();
                     move_into->set_value<int>(string.size());
                 } break;
                 case StateType::ARRAY: {
@@ -232,12 +231,12 @@ void Runner::handle_instruction() {
             State* stream_from = get_state(args[2], args[3]);
             switch (stream_into->get_type().get_main_type()) {
                 case StateType::STRING: {
-                    stringstream stream;
-                    string into = stream_into->get_value<string>();
-                    string from = stream_from->get_value<string>();
+                    std::stringstream stream;
+                    std::string into = stream_into->get_value<std::string>();
+                    std::string from = stream_from->get_value<std::string>();
                     stream << into;
                     stream << from;
-                    stream_into->set_value<string>(stream.str());
+                    stream_into->set_value<std::string>(stream.str());
                 } break;
                 case StateType::ARRAY: {
                     StateArray* array = stream_into->get_value<StateArray*>();

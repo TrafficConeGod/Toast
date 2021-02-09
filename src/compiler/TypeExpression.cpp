@@ -2,7 +2,6 @@
 #include "TokenType.h"
 #include "t_cmp.h"
 using namespace toast;
-using namespace std;
 
 TypeExpression::TypeExpression(toast::StateType type) {
     this->type = type;

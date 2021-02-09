@@ -7,7 +7,6 @@
 #include "CompilerException.h"
 #include "t_cmp.h"
 using namespace toast;
-using namespace std;
 using State = CmpState;
 
 Expression::Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions, std::vector<std::string> identifiers, std::vector<std::any> values) {

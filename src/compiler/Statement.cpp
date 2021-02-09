@@ -11,7 +11,6 @@
 #include "CmpState.h"
 #include "t_cmp.h"
 using namespace toast;
-using namespace std;
 using State = CmpState;
 
 Statement::Statement(std::deque<Token>* tokens) {

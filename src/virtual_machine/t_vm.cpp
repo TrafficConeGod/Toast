@@ -1,11 +1,10 @@
 #include "t_vm.h"
 using namespace toast;
-using namespace std;
 
-void toast::execute(vector<Instruction> instructions) {
+void toast::execute(std::vector<Instruction> instructions) {
     // try {
         Runner runner = Runner(instructions);
     // } catch (toast::Exception e) {
-        // cout << e.what() << endl;
+        // std::cout << e.what() << std::endl;
     // }
 }

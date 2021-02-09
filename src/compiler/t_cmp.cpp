@@ -6,31 +6,30 @@
 #include "Builder.h"
 #include "CompilerException.h"
 using namespace toast;
-using namespace std;
 
-vector<Instruction> toast::generate_instruction_list(string source) {
+std::vector<Instruction> toast::generate_instruction_list(std::string source) {
     try {
         Lexer lexer = Lexer(source);
-        deque<Token> tokens = lexer.get_tokens();
+        std::deque<Token> tokens = lexer.get_tokens();
         // for (Token token : tokens) {
-        //     cout << token.get_type() << " " << token.get_literal() << endl;
+        //     std::cout << token.get_type() << " " << token.get_literal() << std::endl;
         // }
         Parser parser = Parser(tokens);
         Builder builder = Builder(parser.get_script());
         return builder.get_instructions();
         // Builder builder = Builder(tokens);
-        // vector<Instruction> instructions = builder.get_instructions();
+        // std::vector<Instruction> instructions = builder.get_instructions();
         // return instructions;
     } catch (Exception e) {
-        cout << endl << e.what() << endl;
+        std::cout << std::endl << e.what() << std::endl;
         return {};
     }
 }
 
-any toast::parse_val(string literal, StateTypeHolder type) {
+std::any toast::parse_val(std::string literal, StateTypeHolder type) {
     switch (type.get_main_type()) {
         case StateType::INT: {
-            stringstream stream(literal);
+            std::stringstream stream(literal);
             int val = 0;
             stream >> val;
             if (val == 0 && literal != "0") {
@@ -45,28 +44,28 @@ any toast::parse_val(string literal, StateTypeHolder type) {
             return literal == "true";
         } break;
         default:
-            cout << "Invalid type" << endl;
+            std::cout << "Invalid type" << std::endl;
             throw CompilerException();
     }
 }
 
 
-void toast::expected(string expected, string actual) {
-    cout << "Expected " << expected << " but got " << actual << " instead" << endl;
+void toast::expected(std::string expected, std::string actual) {
+    std::cout << "Expected " << expected << " but got " << actual << " instead" << std::endl;
     throw CompilerException();
 }
 
-void toast::already_declared(string name) {
-    cout << name << " has already been declared" << endl;
+void toast::already_declared(std::string name) {
+    std::cout << name << " has already been declared" << std::endl;
     throw CompilerException();
 }
 
-void toast::not_declared(string name) {
-    cout << name << " has not been declared" << endl;
+void toast::not_declared(std::string name) {
+    std::cout << name << " has not been declared" << std::endl;
     throw CompilerException();
 }
 
-vector<int> toast::offset_args(vector<int> args, int amount) {
+std::vector<int> toast::offset_args(std::vector<int> args, int amount) {
     if (args[0] < 0) {
         args[1] += amount;
     }

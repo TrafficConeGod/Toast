@@ -1,7 +1,6 @@
 #include "Scope.h"
 #include <algorithm>
 using namespace toast;
-using namespace std;
 using State = CmpState;
 
 Scope::Scope(ScopeType type, int stack_frame) {

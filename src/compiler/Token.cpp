@@ -1,6 +1,5 @@
 #include "Token.h"
 using namespace toast;
-using namespace std;
 
 Token::Token(TokenType type, std::string literal) {
     this->type = type;

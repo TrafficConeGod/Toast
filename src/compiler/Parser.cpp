@@ -1,6 +1,5 @@
 #include "Parser.h"
 using namespace toast;
-using namespace std;
 
 Parser::Parser(std::deque<Token> tokens) {
     script = new Script(&tokens);

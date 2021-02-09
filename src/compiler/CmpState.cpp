@@ -1,7 +1,6 @@
 #include "CmpState.h"
 #include "t_cmp.h"
 using namespace toast;
-using namespace std;
 using State = CmpState;
 
 State::CmpState(StateTypeHolder type, int stack_frame) {

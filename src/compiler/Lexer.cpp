@@ -2,7 +2,6 @@
 #include "CompilerException.h"
 #include "TokenType.h"
 using namespace toast;
-using namespace std;
 
 Lexer::Lexer(std::string source) {
     this->source = source;

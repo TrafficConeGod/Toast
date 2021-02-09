@@ -1,6 +1,5 @@
 #include "State.h"
 using namespace toast;
-using namespace std;
 
 State::State(StateTypeHolder type) {
     has_value = false;
@@ -16,7 +15,7 @@ StateTypeHolder State::get_type() {
     return type.back();
 }
 
-// void State::set_value(vector<int> val) {
+// void State::set_value(std::vector<int> val) {
 //     this->value = val;
 // }
 
@@ -24,7 +23,7 @@ StateTypeHolder State::get_type() {
 //     this->value.push_back(val);
 // }
 
-any State::get_value_any() {
+std::any State::get_value_any() {
     return value;
 }
 
@@ -46,7 +45,7 @@ bool State::equals(State* state) {
         case StateType::BOOL:
             return get_value<bool>() == state->get_value<bool>();
         case StateType::STRING:
-            return get_value<string>() == state->get_value<string>();
+            return get_value<std::string>() == state->get_value<std::string>();
         case StateType::FUNC:
         case StateType::ARRAY:
             return false;

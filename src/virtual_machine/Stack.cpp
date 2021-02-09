@@ -1,6 +1,5 @@
 #include "Stack.h"
 using namespace toast;
-using namespace std;
 
 Stack::~Stack() {
     for (State* state : states) {
@@ -15,11 +14,11 @@ State* Stack::get_state(int offset) {
 
 void Stack::push_state(State* state) {
     states.push_back(state);
-    // cout << "PUSH: " << states.size() << endl;
+    // std::cout << "PUSH: " << states.size() << std::endl;
 }
 
 State* Stack::pop_state() {
-    // cout << "POP: " << states.size() << endl;
+    // std::cout << "POP: " << states.size() << std::endl;
     State* state = states.back();
     states.pop_back();
     return state;
