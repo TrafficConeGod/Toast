@@ -1,5 +1,0 @@
-include libstd.cpp as libstd
-
-void print(string msg) {
-    libstd.print(msg)
-}

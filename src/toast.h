@@ -1,3 +1,4 @@
+#pragma once
 // Shared
 #include "shared/Exception.h"
 #include "shared/Instruction.h"

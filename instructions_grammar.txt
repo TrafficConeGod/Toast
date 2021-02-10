@@ -1,5 +1,0 @@
-
-VAR_CREATE:
-type name = expression:
-PUSH type_form
-SET (-frame - 1) offset value
