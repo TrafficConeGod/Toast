@@ -37,8 +37,8 @@ namespace toast {
             std::vector<Instruction> generate_pop_instructions(Builder* builder);
             std::vector<int> get_move_args(Builder* builder);
             StateTypeHolder get_type_holder(Builder* builder);
-            void check_type(Builder* builder, CmpState* state);
-            CmpState* get_state(Builder* builder);
+            void check_type(Builder* builder, Var* state);
+            Var* get_var(Builder* builder);
             // bool can_be_quick_moved() {
             //     switch (type) {
             //         case INT:

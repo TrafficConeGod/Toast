@@ -3,15 +3,14 @@
 #include "StatementType.h"
 #include "Token.h"
 #include "TokenType.h"
-#include "CmpState.h"
+#include "Var.h"
 #include "Scope.h"
 #include "ExpressionType.h"
 #include "Expression.h"
 #include "CompilerException.h"
-#include "CmpState.h"
+#include "Var.h"
 #include "t_cmp.h"
 using namespace toast;
-using State = CmpState;
 
 Statement::Statement(std::deque<Token>* tokens) {
     Token token = tokens->front();
@@ -223,11 +222,11 @@ void Statement::clean() {
     }
 }
 
-void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructions, State* state, Expression expr) {
-    expr.check_type(builder, state);
+void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructions, Var* var, Expression expr) {
+    expr.check_type(builder, var);
     if (expr.can_be_set()) {
-        std::vector<int> args = state->get_args();
-        if (state->get_type().equals(StateType::STRING)) {
+        std::vector<int> args = var->get_args();
+        if (var->get_type().equals(StateType::STRING)) {
             instructions->push_back(Instruction(InstructionType::SET, args, expr.get_string_value()));
         } else {
             args.push_back(expr.get_value());
@@ -235,8 +234,8 @@ void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructi
         }
     } else {
         merge(instructions, expr.generate_push_instructions(builder));
-        builder->update_state(state);
-        std::vector<int> args = state->get_args();
+        builder->update_var(var);
+        std::vector<int> args = var->get_args();
         merge(&args, expr.get_move_args(builder));
         instructions->push_back(Instruction(InstructionType::MOVE, args));
         merge(instructions, expr.generate_pop_instructions(builder));
@@ -253,14 +252,14 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             TypeExpression type_expr = type_expressions.back();
             instructions.push_back(Instruction(InstructionType::PUSH, type_expr.get_type_holder().get_args()));
             std::string ident = identifiers.back();
-            if (builder->has_state(ident)) {
+            if (builder->has_var(ident)) {
                 already_declared(ident);
             }
-            builder->push_state(ident, new State(type_expr.get_type_holder(), builder->get_frame()));
-            State* state = builder->get_state(ident);
+            builder->push_var(ident, new Var(type_expr.get_type_holder(), builder->get_frame()));
+            Var* var = builder->get_var(ident);
             if (type == StatementType::VAR_CREATE) {
                 Expression expr = expressions.back();
-                handle_set(builder, &instructions, state, expr);
+                handle_set(builder, &instructions, var, expr);
             } else if (type == StatementType::FUNCTION_CREATE) {
                 instructions.push_back(Instruction(InstructionType::SET, { frame_negate(builder->get_frame()), 0 }));
                 Scope* scope = new Scope(ScopeType::FUNC, builder->get_frame() + 1);
@@ -287,11 +286,11 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             Expression expr = expressions.front();
             Expression expr_from = expressions[1];
             merge(&instructions, expr.generate_push_instructions(builder));
-            State* state = expr.get_state(builder);
+            Var* var = expr.get_var(builder);
             if (type == StatementType::SET) {
-                handle_set(builder, &instructions, state, expr_from);
+                handle_set(builder, &instructions, var, expr_from);
             } else {
-                std::vector<int> args = state->get_args();
+                std::vector<int> args = var->get_args();
                 merge(&args, args);
                 merge(&args, expr_from.get_move_args(builder));
                 instructions.push_back(Instruction(InstructionType::ADD, args));

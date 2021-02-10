@@ -3,7 +3,7 @@
 #include "ExpressionType.h"
 #include "StatementType.h"
 #include "Builder.h"
-#include "CmpState.h"
+#include "Var.h"
 #include "Token.h"
 #include "TypeExpression.h"
 #include <vector>
@@ -18,7 +18,7 @@ namespace toast {
             std::vector<TypeExpression> type_expressions;
             std::vector<Expression> expressions;
             std::vector<std::string> identifiers;
-            void handle_set(Builder* builder, std::vector<Instruction>* instructions, CmpState* state, Expression expr);
+            void handle_set(Builder* builder, std::vector<Instruction>* instructions, Var* state, Expression expr);
         public:
             Statement(std::deque<Token>* tokens);
             StatementType get_type();

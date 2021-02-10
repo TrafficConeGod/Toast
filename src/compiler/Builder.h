@@ -16,12 +16,12 @@ namespace toast {
             Builder(Script* script);
             ~Builder();
             std::vector<Instruction> get_instructions();
-            bool has_state(std::string ident);
-            int get_state_offset(CmpState* state);
-            CmpState* get_state(std::string ident);
+            bool has_var(std::string ident);
+            int get_var_offset(Var* var);
+            Var* get_var(std::string ident);
             int get_frame();
-            void push_state(std::string ident, CmpState* state);
-            void update_state(CmpState* state);
+            void push_var(std::string ident, Var* var);
+            void update_var(Var* var);
             void add_temp_offset();
             void sub_temp_offset();
             int get_temp_offset();

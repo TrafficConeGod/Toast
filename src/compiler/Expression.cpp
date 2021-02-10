@@ -3,11 +3,10 @@
 #include "TokenType.h"
 #include "StatementType.h"
 #include "Statement.h"
-#include "CmpState.h"
+#include "Var.h"
 #include "CompilerException.h"
 #include "t_cmp.h"
 using namespace toast;
-using State = CmpState;
 
 Expression::Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions, std::vector<std::string> identifiers, std::vector<std::any> values) {
     this->type = type;
@@ -351,8 +350,8 @@ std::vector<int> Expression::get_move_args(Builder* builder) {
             return { (int)StateType::BOOL, get_value() };
         case ExpressionType::IDENTIFIER: {
             std::string ident = identifiers.back();
-            State* state = builder->get_state(ident);
-            return { frame_negate(state->get_frame()), state->get_offset() };
+            Var* var = builder->get_var(ident);
+            return { frame_negate(var->get_frame()), var->get_offset() };
         } break;
         default:
             return { frame_negate(builder->get_frame()), 0 };
@@ -369,11 +368,11 @@ StateTypeHolder Expression::get_type_holder(Builder* builder) {
             return StateTypeHolder(StateType::STRING);
         case ExpressionType::IDENTIFIER: {
             std::string ident = identifiers.back();
-            if (!builder->has_state(ident)) {
+            if (!builder->has_var(ident)) {
                 not_declared(ident);
             }
-            State* state = builder->get_state(ident);
-            return state->get_type();
+            Var* var = builder->get_var(ident);
+            return var->get_type();
         }
         case ExpressionType::FUNCTION: {
             std::vector<StateTypeHolder> sub_types = {};
@@ -389,22 +388,22 @@ StateTypeHolder Expression::get_type_holder(Builder* builder) {
     }
 }
 
-void Expression::check_type(Builder* builder, State* state) {
-    if (!state->get_type().equals(get_type_holder(builder))) {
+void Expression::check_type(Builder* builder, Var* var) {
+    if (!var->get_type().equals(get_type_holder(builder))) {
         std::cout << "Types are incompatible" << std::endl;
         throw CompilerException();
     }
 }
 
-State* Expression::get_state(Builder* builder) {
+Var* Expression::get_var(Builder* builder) {
     switch (type) {
         case ExpressionType::IDENTIFIER: {
             std::string ident = identifiers.back();
-            if (!builder->has_state(ident)) {
+            if (!builder->has_var(ident)) {
                 not_declared(ident);
             }
-            State* state = builder->get_state(ident);
-            return state;
+            Var* var = builder->get_var(ident);
+            return var;
         } break;
         default:
             std::cout << "Not identifiying" << std::endl;

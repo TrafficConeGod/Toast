@@ -4,13 +4,13 @@
 #include <vector>
 
 namespace toast {
-    class CmpState {
+    class Var {
         private:
             std::vector<StateTypeHolder> type;
             int stack_frame;
             int offset;
         public:
-            CmpState(StateTypeHolder type, int stack_frame);
+            Var(StateTypeHolder type, int stack_frame);
             void set_stack_frame();
             StateTypeHolder get_type();
             int get_frame();

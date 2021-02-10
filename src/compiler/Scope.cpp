@@ -1,7 +1,6 @@
 #include "Scope.h"
 #include <algorithm>
 using namespace toast;
-using State = CmpState;
 
 Scope::Scope(ScopeType type, int stack_frame) {
     this->type = type;
@@ -9,56 +8,56 @@ Scope::Scope(ScopeType type, int stack_frame) {
 }
 
 Scope::~Scope() {
-    for (State* state : state_stack) {
-        delete state;
+    for (Var* var : var_stack) {
+        delete var;
     }
 }
 
-void Scope::push(State* state) {
-    return state_stack.push_back(state);
+void Scope::push(Var* var) {
+    return var_stack.push_back(var);
 }
 
-std::vector<State*> Scope::get_state_stack() {
-    return state_stack;
+std::vector<Var*> Scope::get_var_stack() {
+    return var_stack;
 }
 
-void Scope::push_state(std::string ident, State* state) {
-    state_map[ident] = state;
-    state_stack.push_back(state);
+void Scope::push_var(std::string ident, Var* var) {
+    var_map[ident] = var;
+    var_stack.push_back(var);
 }
 
-bool Scope::has_state(std::string ident) {
-    return state_map.count(ident) != 0;
+bool Scope::has_var(std::string ident) {
+    return var_map.count(ident) != 0;
 }
 
-bool Scope::has_state(State* state) {
+bool Scope::has_var(Var* var) {
     // google was real helpful here
     bool val = false;
-    std::for_each(state_map.begin(), state_map.end(), [&](const std::pair<std::string, State*> entry) {
-        if (entry.second == state) {
+    std::for_each(var_map.begin(), var_map.end(), [&](const std::pair<std::string, Var*> entry) {
+        if (entry.second == var) {
             val = true;
         }
     });
     return val;
 }
 
-int Scope::get_state_offset(std::string ident) {
-    State* state = state_map[ident];
-    return get_state_offset(state);
+int Scope::get_var_offset(std::string ident) {
+    Var* var = var_map[ident];
+    return get_var_offset(var);
 }
 
-int Scope::get_state_offset(State* state) {
-    for (int i = 0; i < state_stack.size(); i++) {
-        State* check_state = state_stack[i];
-        if (state == check_state) {
-            return (state_stack.size() - 1) - i;
+int Scope::get_var_offset(Var* var) {
+    for (int i = 0; i < var_stack.size(); i++) {
+        Var* check_var = var_stack[i];
+        if (var == check_var) {
+            return (var_stack.size() - 1) - i;
         }
     }
     return 0;
 }
 
-State* Scope::get_state(std::string ident) {
-    return state_map[ident];
+Var* Scope::get_var(std::string ident) {
+    return var_map[ident];
 }
 
 ScopeType Scope::get_type() {
@@ -71,7 +70,7 @@ int Scope::get_frame() {
 
 std::vector<Instruction> Scope::get_instructions() {
     std::vector<Instruction> instructions;
-    for (State* state : state_stack) {
+    for (Var* var : var_stack) {
         instructions.push_back(Instruction(InstructionType::POP, {}));
     }
     return instructions;
