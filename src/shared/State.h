@@ -9,9 +9,9 @@ namespace toast {
     class State {
         private:
             std::vector<StateTypeHolder> type;
-            bool has_value;
+            bool has_value = false;
             std::any value;
-            bool temp;
+            bool temp = false;
         public:
             State();
             State(StateTypeHolder type);

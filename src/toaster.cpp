@@ -63,11 +63,22 @@ int main(int argc, char** argv) {
         // int d = a
         Instruction(i::PUSH, { 7 }),
         Instruction(i::MOVE, { 7, 1 }),
-        // my_func
+        // my_func()
         Instruction(i::PUSH, { 8 }),
         Instruction(i::CALL, { 8, 4 }),
-        // exit scope
         Instruction(i::POP, { 8 }),
+        // if (a == 2) {
+        Instruction(i::PUSH, { 9 }),
+        Instruction(i::EQUALS, { 9, 1, 0 }, { new State(h(s::INT), 3) }),
+        Instruction(i::IF, { 9 }),
+        Instruction(i::POP, { 9 }),
+        Instruction(i::FORWARD, { 3 }),
+        // int k = 10
+        Instruction(i::PUSH, { 10 }),
+        Instruction(i::MOVE, { 10, 0 }, { new State(h(s::INT), 10) }),
+        Instruction(i::POP, { 10 }),
+        // }
+        // exit scope
         Instruction(i::POP, { 1 }),
         Instruction(i::POP, { 2 }),
         Instruction(i::POP, { 4 }),
