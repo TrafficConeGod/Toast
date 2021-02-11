@@ -42,11 +42,16 @@ std::any State::get_value_any() {
 
 void State::move_value_from(State* state) {
     has_value = true;
-    if (type.size() > 0) {
-        type.pop_back();
-    }
-    type.push_back(state->get_type());
+    set_type(state->get_type());
     value = state->get_value_any();
+}
+
+void State::set_type(StateTypeHolder type) {
+    if (this->type.size() == 0) {
+        this->type.push_back(type);
+    } else {
+        this->type[0] = type;
+    }
 }
 
 bool State::equals(State* state) {

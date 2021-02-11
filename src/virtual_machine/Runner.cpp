@@ -146,6 +146,7 @@ void Runner::handle_instruction() {
                 case InstructionType::MULTIPLY: val *= val_2; break;
                 case InstructionType::DIVIDE: val /= val_2; break;
             }
+            into->set_type(op_1->get_type());
             into->set_value<int>(val);
         } break;
     }

@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
         Instruction(i::EXIT, { 5 }),
         // int d = a
         Instruction(i::PUSH, { 7 }),
-        Instruction(i::SET, { 7, 1 }),
+        Instruction(i::MOVE, { 7, 1 }),
         // my_func
         Instruction(i::PUSH, { 8 }),
         Instruction(i::CALL, { 8, 4 }),

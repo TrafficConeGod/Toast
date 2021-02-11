@@ -18,6 +18,7 @@ namespace toast {
             State(StateTypeHolder type, std::any value);
             ~State();
             StateTypeHolder get_type();
+            void set_type(StateTypeHolder type);
             std::any get_value_any();
             void move_value_from(State* state);
             std::string get_cpp_string();
