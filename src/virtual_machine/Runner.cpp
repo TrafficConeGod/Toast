@@ -130,6 +130,24 @@ void Runner::handle_instruction() {
             State* from = states[1];
             into->move_value_from(from);
         } break;
+        case InstructionType::ADD:
+        case InstructionType::SUBTRACT:
+        case InstructionType::MULTIPLY:
+        case InstructionType::DIVIDE: {
+            std::vector<State*> states = get_states(instruction);
+            State* into = states[0];
+            State* op_1 = states[1];
+            State* op_2 = states[2];
+            int val = op_1->get_value<int>();
+            int val_2 = op_2->get_value<int>();
+            switch (type) {
+                case InstructionType::ADD: val += val_2; break;
+                case InstructionType::SUBTRACT: val -= val_2; break;
+                case InstructionType::MULTIPLY: val *= val_2; break;
+                case InstructionType::DIVIDE: val /= val_2; break;
+            }
+            into->set_value<int>(val);
+        } break;
     }
     // switch (type) {
     //     case InstructionType::PUSH: {
