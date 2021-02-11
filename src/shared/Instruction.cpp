@@ -55,23 +55,17 @@ std::string Instruction::make_human_readable() {
         case InstructionType::EXIT:
             stream << "EXIT";
             break;
-        case InstructionType::FRAME:
-            stream << "FRAME";
+        case InstructionType::BACKWARD:
+            stream << "BACKWARD";
             break;
-        case InstructionType::BACK:
-            stream << "BACK";
-            break;
-        case InstructionType::SKIP:
-            stream << "SKIP";
+        case InstructionType::FORWARD:
+            stream << "FORWARD";
             break;
         case InstructionType::ARG:
             stream << "ARG";
             break;
         case InstructionType::RETURN:
             stream << "RETURN";
-            break;
-        case InstructionType::MOVE_RETURN:
-            stream << "MOVE_RETURN";
             break;
         case InstructionType::ADD:
             stream << "ADD";

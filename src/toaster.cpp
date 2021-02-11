@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
         // int my_func() {
         Instruction(i::PUSH, { 4 }),
         Instruction(i::FUNCTION, { 4, 0 }, { new State(h(s::FUNC), 0) }),
-        Instruction(i::SKIP, { 11 }),
+        Instruction(i::FORWARD, { 11 }),
         // int c = b + 100
         Instruction(i::PUSH, { 5 }),
         Instruction(i::PUSH, { 6 }),

@@ -159,8 +159,11 @@ void Runner::handle_instruction() {
             into->set_type(op_1->get_type());
             into->set_value<int>(val);
         } break;
-        case InstructionType::SKIP: {
+        case InstructionType::FORWARD: {
             position += args[0];
+        } break;
+        case InstructionType::BACKWARD: {
+            position -= args[0];
         } break;
         case InstructionType::FUNCTION: {
             std::vector<State*> states = get_states(instruction);
