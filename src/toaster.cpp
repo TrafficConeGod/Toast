@@ -44,18 +44,22 @@ int main(int argc, char** argv) {
         // int my_func() {
         Instruction(i::PUSH, { 4 }),
         Instruction(i::FUNCTION, { 4, 0 }, { new State(h(s::FUNC), { new State(h(s::INT)) }) }),
-        Instruction(i::SKIP, { 8 }),
+        Instruction(i::SKIP, { 11 }),
         // int c = b + 100
         Instruction(i::PUSH, { 5 }),
         Instruction(i::PUSH, { 6 }),
-        Instruction(i::ADD, { 6, 2, 0 }, { new State(h(s::INT), 1) }),
+        Instruction(i::ADD, { 6, 2, 0 }, { new State(h(s::INT), 100) }),
         Instruction(i::MOVE, { 5, 6 }),
         Instruction(i::POP, { 6 }),
         // c++
         Instruction(i::ADD, { 5, 5, 0 }, { new State(h(s::INT), 1) }),
+        // return c
+        Instruction(i::RETURN, { 5 }),
+        Instruction(i::POP, { 5 }),
+        Instruction(i::EXIT, {}),
         // }
         Instruction(i::POP, { 5 }),
-        Instruction(i::EXIT, { 5 }),
+        Instruction(i::EXIT, {}),
         // int d = a
         Instruction(i::PUSH, { 7 }),
         Instruction(i::MOVE, { 7, 1 }),

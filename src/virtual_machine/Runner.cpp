@@ -1,4 +1,5 @@
 #include "Runner.h"
+#include "StateFunction.h"
 using namespace toast;
 
 Runner::Runner(std::vector<Instruction> instructions) {
@@ -122,7 +123,7 @@ void Runner::handle_instruction() {
         } break;
         case InstructionType::POP: {
             int state_key = args[0];
-            pop_state(state_key);
+            delete pop_state(state_key);
         } break;
         case InstructionType::MOVE: {
             std::vector<State*> states = get_states(instruction);
@@ -148,6 +149,37 @@ void Runner::handle_instruction() {
             }
             into->set_type(op_1->get_type());
             into->set_value<int>(val);
+        } break;
+        case InstructionType::SKIP: {
+            position += args[0];
+        } break;
+        case InstructionType::FUNCTION: {
+            std::vector<State*> states = get_states(instruction);
+            State* into = states[0];
+            State* type_state = states[1];
+            into->move_value_from(type_state);
+            Frame* clone = frames.back()->clone();
+            into->set_value<StateFunction*>(new StateFunction(position + 1, clone));
+        } break;
+        case InstructionType::CALL: {
+            return_stack.push_back(position + 1);
+            std::vector<State*> states = get_states(instruction);
+            State* into = states[0];
+            State* from = states[1];
+            StateFunction* function = from->get_value<StateFunction*>();
+            position = function->get_position();
+            frames.push_back(function->get_frame()->clone());
+            return_state = into;
+        } break;
+        case InstructionType::RETURN: {
+            std::vector<State*> states = get_states(instruction);
+            State* from = states[0];
+            return_state->move_value_from(from);
+        } break;
+        case InstructionType::EXIT: {
+            frames.pop_back();
+            position = return_stack.back();
+            return_stack.pop_back();
         } break;
     }
     // switch (type) {

@@ -11,9 +11,12 @@ namespace toast {
             // std::map<uint, Stack*> stacks;
             std::map<uint, State*> states;
         public:
+            Frame();
+            Frame(std::map<uint, State*> states);
             ~Frame();
             void push_state(uint state_key);
             State* pop_state(uint state_key);
             State* get_state(uint state_key);
+            Frame* clone();
     };
 }
