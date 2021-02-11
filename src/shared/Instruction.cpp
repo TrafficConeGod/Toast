@@ -1,17 +1,27 @@
 #include "Instruction.h"
 using namespace toast;
 
-Instruction::Instruction(InstructionType type, std::vector<int> args) {
+Instruction::Instruction(InstructionType type, std::vector<uint> args) {
     this->type = type;
     this->args = args;
+}
+
+Instruction::Instruction(InstructionType type, std::vector<uint> args, std::vector<State> states) {
+    this->type = type;
+    this->args = args;
+    this->states = states;
 }
 
 InstructionType Instruction::get_type() {
     return type;
 }
 
-std::vector<int> Instruction::get_args() {
+std::vector<uint> Instruction::get_args() {
     return args;
+}
+
+std::vector<State> Instruction::get_states() {
+    return states;
 }
 
 std::string Instruction::make_human_readable() {
@@ -89,6 +99,9 @@ std::string Instruction::make_human_readable() {
         case InstructionType::DELETE:
             stream << "DELETE";
             break;
+        case InstructionType::FUNCTION:
+            stream << "FUNCTION";
+            break;
         default:
             throw Exception("No name for instruction type");
     }
@@ -100,12 +113,6 @@ std::string Instruction::make_human_readable() {
     return stream.str();
 }
 
-Instruction::Instruction(InstructionType type, std::vector<int> args, std::string str) {
-    this->type = type;
-    this->args = args;
-    this->str = str;
-}
-
 std::string Instruction::get_string() {
-    return str;
+    return "";
 }

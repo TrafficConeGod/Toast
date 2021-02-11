@@ -12,20 +12,21 @@
 namespace toast {
     class Runner {
         private:
-            int position = 0;
-            int frame_key = -1;
+            uint position = 0;
             std::vector<Instruction> instructions;
-            std::map<int, Frame*> frames;
-            std::vector<int> return_stack;
+            std::vector<Frame*> frames;
+            std::vector<uint> return_stack;
             std::deque<State*> call_args;
             State* return_state;
         public:
             Runner(std::vector<Instruction>);
             ~Runner();
             void handle_instruction();
-            void set_frame(int frame_key, bool push_stack);
-            State* get_state(int frame_key, int offset);
-            State* push_state(StateTypeHolder type);
-            State* pop_state();
+            // void set_frame(int frame_key, bool push_stack);
+            // State* get_state(int frame_key, int offset);
+            void push_state(uint state_key);
+            State* pop_state(uint state_key);
+            State* get_state(uint state_key);
+            std::vector<State*> get_states(Instruction instruction);
     };
 }

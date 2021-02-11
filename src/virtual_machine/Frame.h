@@ -3,20 +3,17 @@
 #include "Stack.h"
 #include <iostream>
 #include <vector>
+#include <map>
 
 namespace toast {
     class Frame {
         private:
-            int last;
-            std::vector<int> keys;
-            std::vector<Stack*> stacks;
+            // std::map<uint, Stack*> stacks;
+            std::map<uint, State*> states;
         public:
             ~Frame();
-            void push_stack(int key);
-            void pop_stack();
-            void push_state(State* state);
-            State* pop_state();
-            State* get_state(int offset);
-            int get_return();
+            void push_state(uint state_key);
+            State* pop_state(uint state_key);
+            State* get_state(uint state_key);
     };
 }

@@ -7,9 +7,8 @@ Stack::~Stack() {
     }
 }
 
-State* Stack::get_state(int offset) {
-    State* state = states[(states.size() - 1) - offset];
-    return state;
+State* Stack::get_state() {
+    return states.back();
 }
 
 void Stack::push_state(State* state) {

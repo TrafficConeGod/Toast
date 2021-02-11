@@ -4,18 +4,20 @@
 #include <sstream>
 #include "InstructionType.h"
 #include "Exception.h"
+#include "State.h"
 
 namespace toast {
     class Instruction {
         private:
             InstructionType type;
-            std::vector<int> args;
-            std::string str;
+            std::vector<uint> args;
+            std::vector<State> states;
         public:
-            Instruction(InstructionType type, std::vector<int> args);
-            Instruction(InstructionType type, std::vector<int> args, std::string str);
+            Instruction(InstructionType type, std::vector<uint> args);
+            Instruction(InstructionType type, std::vector<uint> args, std::vector<State> states);
             InstructionType get_type();
-            std::vector<int> get_args();
+            std::vector<uint> get_args();
+            std::vector<State> get_states();
             std::string get_string();
             std::string make_human_readable();
     };

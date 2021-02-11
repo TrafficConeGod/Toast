@@ -11,7 +11,7 @@ namespace toast {
             ~Stack();
             void push_state(State* state);
             State* pop_state();
-            State* get_state(int offset);
+            State* get_state();
             bool is_empty();
     };
 }

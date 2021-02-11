@@ -1,10 +1,20 @@
 #include "../shared/State.h"
 using namespace toast;
 
+State::State() {
+}
+
 State::State(StateTypeHolder type) {
     has_value = false;
     temp = false;
     this->type.push_back(type);
+}
+
+State::State(StateTypeHolder type, std::any value) {
+    has_value = true;
+    temp = false;
+    this->type.push_back(type);
+    this->value = value;
 }
 
 State::~State() {
@@ -12,6 +22,9 @@ State::~State() {
 }
 
 StateTypeHolder State::get_type() {
+    if (!has_value) {
+        throw Exception("Has no type");
+    }
     return type.back();
 }
 
@@ -29,6 +42,10 @@ std::any State::get_value_any() {
 
 void State::move_value_from(State* state) {
     has_value = true;
+    if (type.size() > 0) {
+        type.pop_back();
+    }
+    type.push_back(state->get_type());
     value = state->get_value_any();
 }
 

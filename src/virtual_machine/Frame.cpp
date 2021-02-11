@@ -2,42 +2,22 @@
 using namespace toast;
 
 Frame::~Frame() {
-    for (Stack* stack : stacks) {
-        delete stack;
+    std::map<uint, State*>::iterator it;
+    for (it = states.begin(); it != states.end(); it++) {
+        delete it->second;
     }
 }
 
-void Frame::push_stack(int key) {
-    keys.push_back(key);
-    stacks.push_back( new Stack() );
+void Frame::push_state(uint state_key) {
+    states[state_key] = new State();
 }
 
-void Frame::pop_stack() {
-    last = keys.back();
-    keys.pop_back();
-    delete stacks.back();
-    stacks.pop_back();
-}
-
-State* Frame::get_state(int offset) {
-    Stack* stack = stacks.back();
-    return stack->get_state(offset);
-}
-
-void Frame::push_state(State* state) {
-    Stack* stack = stacks.back();
-    stack->push_state(state);
-}
-
-State* Frame::pop_state() {
-    Stack* stack = stacks.back();
-    State* state = stack->pop_state();
-    if (stack->is_empty()) {
-        pop_stack();
-    }
+State* Frame::pop_state(uint state_key) {
+    State* state = states[state_key];
+    states.erase(state_key);
     return state;
 }
 
-int Frame::get_return() {
-    return last;
+State* Frame::get_state(uint state_key) {
+    return states[state_key];
 }

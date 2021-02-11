@@ -26,6 +26,7 @@ namespace toast {
         STREAM_OUT,
         MOVE_IN,
         MOVE_OUT,
-        DELETE
+        DELETE,
+        FUNCTION
     };
 }
