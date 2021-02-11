@@ -8,6 +8,10 @@ Frame::Frame(std::map<uint, State*> states) {
 }
 
 Frame::~Frame() {
+    
+}
+
+void Frame::delete_states() {
     std::map<uint, State*>::iterator it;
     for (it = states.begin(); it != states.end(); it++) {
         delete it->second;

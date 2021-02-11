@@ -19,6 +19,7 @@ State::State(StateTypeHolder type, std::any value) {
 
 State::~State() {
     // delete type;
+    
 }
 
 StateTypeHolder State::get_type() {

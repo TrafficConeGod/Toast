@@ -13,9 +13,13 @@ Instruction::Instruction(InstructionType type, std::vector<uint> args, std::vect
 }
 
 Instruction::~Instruction() {
-    // for (State* state : states) {
-    //     delete state;
-    // }
+
+}
+
+void Instruction::delete_states() {
+    for (State* state : states) {
+        delete state;
+    }
 }
 
 InstructionType Instruction::get_type() {

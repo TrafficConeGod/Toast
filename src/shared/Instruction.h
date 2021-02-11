@@ -16,6 +16,7 @@ namespace toast {
             Instruction(InstructionType type, std::vector<uint> args);
             Instruction(InstructionType type, std::vector<uint> args, std::vector<State*> states);
             ~Instruction();
+            void delete_states();
             InstructionType get_type();
             std::vector<uint> get_args();
             std::vector<State*> get_states();

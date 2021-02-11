@@ -12,6 +12,10 @@ Runner::Runner(std::vector<Instruction> instructions) {
 }
 
 Runner::~Runner() {
+    for (Frame* frame : frames) {
+        frame->delete_states();
+        delete frame;
+    }
     // std::map<int, Frame*>::iterator it;
     // for (it = frames.begin(); it != frames.end(); it++) {
     //     delete it->second;
@@ -182,6 +186,7 @@ void Runner::handle_instruction() {
             return_state->move_value_from(from);
         } break;
         case InstructionType::EXIT: {
+            delete frames.back();
             frames.pop_back();
             position = return_stack.back();
             return_stack.pop_back();

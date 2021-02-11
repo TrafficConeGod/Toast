@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
         Instruction(i::POP, { 3 }),
         // int my_func() {
         Instruction(i::PUSH, { 4 }),
-        Instruction(i::FUNCTION, { 4, 0 }, { new State(h(s::FUNC), { new State(h(s::INT)) }) }),
+        Instruction(i::FUNCTION, { 4, 0 }, { new State(h(s::FUNC), 0) }),
         Instruction(i::SKIP, { 11 }),
         // int c = b + 100
         Instruction(i::PUSH, { 5 }),
@@ -74,5 +74,8 @@ int main(int argc, char** argv) {
         Instruction(i::POP, { 7 }),
     };
     toast::execute(instructions);
+    for (Instruction in : instructions) {
+        in.delete_states();
+    }
     return 0;
 }

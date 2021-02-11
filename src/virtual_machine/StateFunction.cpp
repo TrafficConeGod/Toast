@@ -7,7 +7,7 @@ StateFunction::StateFunction(uint position, Frame* frame) {
 }
 
 StateFunction::~StateFunction() {
-
+    delete frame;
 }
 
 uint StateFunction::get_position() {
