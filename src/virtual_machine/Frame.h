@@ -18,6 +18,7 @@ namespace toast {
             void push_state(uint state_key);
             State* pop_state(uint state_key);
             State* get_state(uint state_key);
-            Frame* clone();
+            Frame clone();
+            Frame* clone_ptr();
     };
 }

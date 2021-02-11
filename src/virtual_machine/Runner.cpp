@@ -128,10 +128,6 @@ void Runner::handle_instruction() {
         case InstructionType::POP: {
             int state_key = args[0];
             State* state = pop_state(state_key);
-            // c++ made me use pointers for this for some reason
-            if (!state->is_empty() && state->get_type().equals(StateType::FUNC)) {
-                delete state->get_value<StateFunction*>();
-            }
             delete state;
         } break;
         case InstructionType::MOVE: {
@@ -170,17 +166,17 @@ void Runner::handle_instruction() {
             State* into = states[0];
             State* type_state = states[1];
             into->move_value_from(type_state);
-            Frame* clone = frames.back()->clone();
-            into->set_value<StateFunction*>(new StateFunction(position + 1, clone));
+            Frame clone = frames.back()->clone();
+            into->set_value<StateFunction>(StateFunction(position + 1, clone));
         } break;
         case InstructionType::CALL: {
             return_stack.push_back(position + 1);
             std::vector<State*> states = get_states(instruction);
             State* into = states[0];
             State* from = states[1];
-            StateFunction* function = from->get_value<StateFunction*>();
-            position = function->get_position();
-            frames.push_back(function->get_frame()->clone());
+            StateFunction function = from->get_value<StateFunction>();
+            position = function.get_position();
+            frames.push_back(function.get_frame().clone_ptr());
             return_state = into;
         } break;
         case InstructionType::RETURN: {

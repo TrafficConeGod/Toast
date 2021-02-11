@@ -32,6 +32,10 @@ State* Frame::get_state(uint state_key) {
     return states[state_key];
 }
 
-Frame* Frame::clone() {
+Frame Frame::clone() {
+    return Frame(states);
+}
+
+Frame* Frame::clone_ptr() {
     return new Frame(states);
 }

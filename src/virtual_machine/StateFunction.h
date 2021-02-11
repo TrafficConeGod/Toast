@@ -5,11 +5,11 @@ namespace toast {
     class StateFunction {
         private:
             uint position;
-            Frame* frame;
+            Frame frame;
         public:
-            StateFunction(uint position, Frame* frame);
+            StateFunction(uint position, Frame frame);
             ~StateFunction();
             uint get_position();
-            Frame* get_frame();
+            Frame get_frame();
     };
 }
