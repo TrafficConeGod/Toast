@@ -6,10 +6,16 @@ Instruction::Instruction(InstructionType type, std::vector<uint> args) {
     this->args = args;
 }
 
-Instruction::Instruction(InstructionType type, std::vector<uint> args, std::vector<State> states) {
+Instruction::Instruction(InstructionType type, std::vector<uint> args, std::vector<State*> states) {
     this->type = type;
     this->args = args;
     this->states = states;
+}
+
+Instruction::~Instruction() {
+    // for (State* state : states) {
+    //     delete state;
+    // }
 }
 
 InstructionType Instruction::get_type() {
@@ -20,7 +26,7 @@ std::vector<uint> Instruction::get_args() {
     return args;
 }
 
-std::vector<State> Instruction::get_states() {
+std::vector<State*> Instruction::get_states() {
     return states;
 }
 

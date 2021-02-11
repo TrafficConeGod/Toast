@@ -97,11 +97,11 @@ State* Runner::get_state(uint state_key) {
 std::vector<State*> Runner::get_states(Instruction instruction) {
     std::vector<State*> return_states;
     std::vector<uint> args = instruction.get_args();
-    std::vector<State> states = instruction.get_states();
+    std::vector<State*> states = instruction.get_states();
     for (int i = 0, j = 0; i < args.size(); i++) {
         int arg = args[i];
         if (arg == 0) {
-            return_states.push_back(&states[j]);
+            return_states.push_back(states[j]);
             j++;
         } else {
             return_states.push_back(get_state(arg));

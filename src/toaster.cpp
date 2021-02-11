@@ -34,25 +34,25 @@ int main(int argc, char** argv) {
     std::vector<Instruction> instructions = {
         // int a = 2
         Instruction(i::PUSH, { 1 }),
-        Instruction(i::MOVE, { 1, 0 }, { State(h(s::INT), 2) }),
+        Instruction(i::MOVE, { 1, 0 }, { new State(h(s::INT), 2) }),
         // int b = a + 3
         Instruction(i::PUSH, { 2 }),
         Instruction(i::PUSH, { 3 }),
-        Instruction(i::ADD, { 3, 1, 0 }, { State(h(s::INT), 3) }),
+        Instruction(i::ADD, { 3, 1, 0 }, { new State(h(s::INT), 3) }),
         Instruction(i::MOVE, { 2, 3 }),
         Instruction(i::POP, { 3 }),
         // int my_func() {
         Instruction(i::PUSH, { 4 }),
-        Instruction(i::FUNCTION, { 4, 0 }, { State(h(s::FUNC), { State(h(s::INT)) }) }),
+        Instruction(i::FUNCTION, { 4, 0 }, { new State(h(s::FUNC), { new State(h(s::INT)) }) }),
         Instruction(i::SKIP, { 8 }),
         // int c = b + 100
         Instruction(i::PUSH, { 5 }),
         Instruction(i::PUSH, { 6 }),
-        Instruction(i::ADD, { 6, 2, 0 }, { State(h(s::INT), 1) }),
+        Instruction(i::ADD, { 6, 2, 0 }, { new State(h(s::INT), 1) }),
         Instruction(i::MOVE, { 5, 6 }),
         Instruction(i::POP, { 6 }),
         // c++
-        Instruction(i::ADD, { 5, 5, 0 }, { State(h(s::INT), 1) }),
+        Instruction(i::ADD, { 5, 5, 0 }, { new State(h(s::INT), 1) }),
         // }
         Instruction(i::POP, { 5 }),
         Instruction(i::EXIT, { 5 }),
