@@ -123,7 +123,12 @@ void Runner::handle_instruction() {
         } break;
         case InstructionType::POP: {
             int state_key = args[0];
-            delete pop_state(state_key);
+            State* state = pop_state(state_key);
+            // c++ made me use pointers for this for some reason
+            if (!state->is_empty() && state->get_type().equals(StateType::FUNC)) {
+                delete state->get_value<StateFunction*>();
+            }
+            delete state;
         } break;
         case InstructionType::MOVE: {
             std::vector<State*> states = get_states(instruction);
