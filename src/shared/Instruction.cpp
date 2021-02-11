@@ -106,6 +106,9 @@ std::string Instruction::make_human_readable() {
         case InstructionType::FUNCTION:
             stream << "FUNCTION";
             break;
+        case InstructionType::COMPARE:
+            stream << "COMPARE";
+            break;
         default:
             throw Exception("No name for instruction type");
     }

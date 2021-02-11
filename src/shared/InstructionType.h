@@ -27,6 +27,7 @@ namespace toast {
         MOVE_IN,
         MOVE_OUT,
         DELETE,
-        FUNCTION
+        FUNCTION,
+        COMPARE
     };
 }

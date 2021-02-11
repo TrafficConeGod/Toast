@@ -16,6 +16,7 @@ Runner::~Runner() {
         frame->delete_states();
         delete frame;
     }
+    delete compare_state;
     // std::map<int, Frame*>::iterator it;
     // for (it = frames.begin(); it != frames.end(); it++) {
     //     delete it->second;
@@ -160,6 +161,24 @@ void Runner::handle_instruction() {
         } break;
         case InstructionType::BACKWARD: {
             position -= args[0];
+        } break;
+        case InstructionType::EQUALS: {
+            std::vector<State*> states = get_states(instruction);
+            State* into = states[0];
+            State* op_1 = states[1];
+            State* op_2 = states[2];
+            into->set_type(StateTypeHolder(StateType::BOOL));
+            into->set_value<bool>(op_1->equals(op_2));
+        } break;
+        case InstructionType::COMPARE: {
+            std::vector<State*> states = get_states(instruction);
+            State* from = states[0];
+            compare_state->move_value_from(from);
+        } break;
+        case InstructionType::IF: {
+            if (compare_state->get_value<bool>()) {
+                position++;
+            }
         } break;
         case InstructionType::FUNCTION: {
             std::vector<State*> states = get_states(instruction);

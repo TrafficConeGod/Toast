@@ -69,9 +69,10 @@ int main(int argc, char** argv) {
         Instruction(i::POP, { 8 }),
         // if (a == 2) {
         Instruction(i::PUSH, { 9 }),
-        Instruction(i::EQUALS, { 9, 1, 0 }, { new State(h(s::INT), 3) }),
-        Instruction(i::IF, { 9 }),
+        Instruction(i::EQUALS, { 9, 1, 0 }, { new State(h(s::INT), 2) }),
+        Instruction(i::COMPARE, { 9 }),
         Instruction(i::POP, { 9 }),
+        Instruction(i::IF, { }),
         Instruction(i::FORWARD, { 3 }),
         // int k = 10
         Instruction(i::PUSH, { 10 }),
