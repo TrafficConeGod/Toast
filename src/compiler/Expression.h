@@ -19,6 +19,7 @@ namespace toast {
             std::vector<TypeExpression> type_expressions;
             std::vector<std::string> identifiers;
             std::vector<std::any> values;
+            uint var_key;
             void parse_middle(std::deque<Token>* tokens);
         public:
             Expression(ExpressionType type, std::vector<Statement> statements, std::vector<Expression> expressions, std::vector<TypeExpression> type_expressions, std::vector<std::string> identifiers, std::vector<std::any> values);
@@ -35,7 +36,8 @@ namespace toast {
             std::string get_string_value();
             std::vector<Instruction> generate_push_instructions(Builder* builder);
             std::vector<Instruction> generate_pop_instructions(Builder* builder);
-            std::vector<int> get_move_args(Builder* builder);
+            std::vector<uint> get_args(Builder* builder);
+            std::vector<State*> get_states(Builder* builder);
             StateTypeHolder get_type_holder(Builder* builder);
             void check_type(Builder* builder, Var* state);
             Var* get_var(Builder* builder);

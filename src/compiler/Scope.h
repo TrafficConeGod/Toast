@@ -22,8 +22,6 @@ namespace toast {
             void push_var(std::string ident, Var* var);
             bool has_var(std::string ident);
             bool has_var(Var* var);
-            int get_var_offset(std::string ident);
-            int get_var_offset(Var* var);
             Var* get_var(std::string ident);
             ScopeType get_type();
             int get_frame();

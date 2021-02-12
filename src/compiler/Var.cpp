@@ -2,27 +2,19 @@
 #include "t_cmp.h"
 using namespace toast;
 
-Var::Var(StateTypeHolder type, int stack_frame) {
+Var::Var(StateTypeHolder type, uint key) {
     this->type.push_back(type);
-    this->stack_frame = stack_frame;
+    this->key = key;
 }
 
 StateTypeHolder Var::get_type() {
     return type.back();
 }
 
-int Var::get_frame() {
-    return stack_frame;
+uint Var::get_key() {
+    return key;
 }
 
-void Var::set_offset(int offset) {
-    this->offset = offset;
-}
-
-int Var::get_offset() {
-    return offset;
-}
-
-std::vector<int> Var::get_args() {
-    return { frame_negate(stack_frame), offset };
+std::vector<uint> Var::get_args() {
+    return { key };
 }

@@ -65,12 +65,6 @@ void toast::not_declared(std::string name) {
     throw CompilerException();
 }
 
-std::vector<int> toast::offset_args(std::vector<int> args, int amount) {
-    if (args[0] < 0) {
-        args[1] += amount;
-    }
-    return args;
-}
 
 int toast::frame_negate(int frame_key) {
     return (frame_key * -1) - 1;

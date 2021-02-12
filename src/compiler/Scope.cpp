@@ -41,21 +41,6 @@ bool Scope::has_var(Var* var) {
     return val;
 }
 
-int Scope::get_var_offset(std::string ident) {
-    Var* var = var_map[ident];
-    return get_var_offset(var);
-}
-
-int Scope::get_var_offset(Var* var) {
-    for (int i = 0; i < var_stack.size(); i++) {
-        Var* check_var = var_stack[i];
-        if (var == check_var) {
-            return (var_stack.size() - 1) - i;
-        }
-    }
-    return 0;
-}
-
 Var* Scope::get_var(std::string ident) {
     return var_map[ident];
 }
@@ -71,7 +56,7 @@ int Scope::get_frame() {
 std::vector<Instruction> Scope::get_instructions() {
     std::vector<Instruction> instructions;
     for (Var* var : var_stack) {
-        instructions.push_back(Instruction(InstructionType::POP, {}));
+        instructions.push_back(Instruction(InstructionType::POP, { var->get_key() }));
     }
     return instructions;
 }

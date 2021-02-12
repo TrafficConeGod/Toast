@@ -272,12 +272,19 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
         case ExpressionType::SUBTRACT:
         case ExpressionType::MULTIPLY:
         case ExpressionType::DIVIDE: {
+            var_key = builder->get_var_key();
+            instructions.push_back(Instruction(InstructionType::PUSH, { var_key }));
             Expression expr_1 = expressions[0];
             Expression expr_2 = expressions[1];
+            std::vector<uint> args = get_args(builder);
+            std::vector<uint> args_1 = expr_1.get_args(builder);
             merge(&instructions, expr_1.generate_push_instructions(builder));
+            std::vector<uint> args_2 = expr_2.get_args(builder);
             merge(&instructions, expr_2.generate_push_instructions(builder));
-            builder->add_temp_offset();
-            instructions.push_back(Instruction(InstructionType::PUSH, { (int)StateType::INT }));
+            merge(&args, args_1);
+            merge(&args, args_2);
+            // builder->add_temp_offset();
+            builder->push_var();
             InstructionType instruction_type;
             switch (type) {
                 case ExpressionType::ADD:
@@ -293,27 +300,25 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
                     instruction_type = InstructionType::DIVIDE;
                     break;
             }
-            std::vector<int> args = get_move_args(builder);
-            std::vector<int> args_1 = expr_1.get_move_args(builder);
-            std::vector<int> args_2 = expr_2.get_move_args(builder);
-            args_1 = offset_args(args_1, builder->get_temp_offset() - 1);
-            args_2 = offset_args(args_2, builder->get_temp_offset() - 1);
-            merge(&args, args_1);
-            merge(&args, args_2);
-            instructions.push_back(Instruction(instruction_type, args));
+            std::vector<State*> states = get_states(builder);
+            std::vector<State*> states_1 = expr_1.get_states(builder);
+            std::vector<State*> states_2 = expr_2.get_states(builder);
+            merge(&states, states_1);
+            merge(&states, states_2);
+            instructions.push_back(Instruction(instruction_type, args, states));
         } break;
         case ExpressionType::FUNCTION: {
-            builder->add_temp_offset();
-            instructions.push_back(Instruction(InstructionType::PUSH, get_type_holder(builder).get_args()));
-            instructions.push_back(Instruction(InstructionType::SET, get_move_args(builder)));
+            // builder->add_temp_offset();
+            // instructions.push_back(Instruction(InstructionType::PUSH, get_type_holder(builder).get_args()));
+            // instructions.push_back(Instruction(InstructionType::SET, get_move_args(builder)));
             Scope* scope = new Scope(ScopeType::FUNC, builder->get_frame() + 1);
             builder->push_scope(scope);
             Statement sub_statement = statements.back();
             std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
-            instructions.push_back(Instruction(InstructionType::SKIP, { (int)sub_instructions.size() + 2 }));
+            // instructions.push_back(Instruction(InstructionType::SKIP, { (int)sub_instructions.size() + 2 }));
             merge(&instructions, sub_instructions);
-            instructions.push_back(Instruction(InstructionType::BACK, {}));
-            instructions.push_back(Instruction(InstructionType::EXIT, {}));
+            // instructions.push_back(Instruction(InstructionType::BACK, {}));
+            // instructions.push_back(Instruction(InstructionType::EXIT, {}));
             delete builder->pop_scope();
         } break;
     }
@@ -331,30 +336,40 @@ std::vector<Instruction> Expression::generate_pop_instructions(Builder* builder)
             Expression expr_2 = expressions[1];
             merge(&instructions, expr_1.generate_pop_instructions(builder));
             merge(&instructions, expr_2.generate_pop_instructions(builder));
-            builder->sub_temp_offset();
-            instructions.push_back(Instruction(InstructionType::POP, {}));
+            // builder->sub_temp_offset();
+            instructions.push_back(Instruction(InstructionType::POP, { var_key }));
         } break;
         case ExpressionType::FUNCTION:
-            builder->sub_temp_offset();
-            instructions.push_back(Instruction(InstructionType::POP, {}));
+            // builder->sub_temp_offset();
+            // instructions.push_back(Instruction(InstructionType::POP, {}));
             break;
     }
     return instructions;
 }
 
-std::vector<int> Expression::get_move_args(Builder* builder) {
+std::vector<uint> Expression::get_args(Builder* builder) {
     switch (type) {
         case ExpressionType::INT:
-            return { (int)StateType::INT, get_value() };
         case ExpressionType::BOOL:
-            return { (int)StateType::BOOL, get_value() };
+            return { 0 };
         case ExpressionType::IDENTIFIER: {
             std::string ident = identifiers.back();
             Var* var = builder->get_var(ident);
-            return { frame_negate(var->get_frame()), var->get_offset() };
+            return { var->get_key() };
         } break;
         default:
-            return { frame_negate(builder->get_frame()), 0 };
+            return { var_key };
+    }
+}
+
+std::vector<State*> Expression::get_states(Builder* builder) {
+    switch (type) {
+        case ExpressionType::INT:
+            return { new State(StateType::INT, values.back()) };
+        case ExpressionType::BOOL:
+            return { new State(StateType::BOOL, values.back()) };
+        default:
+            return {};
     }
 }
 

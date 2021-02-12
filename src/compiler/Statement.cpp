@@ -224,22 +224,26 @@ void Statement::clean() {
 
 void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructions, Var* var, Expression expr) {
     expr.check_type(builder, var);
-    if (expr.can_be_set()) {
-        std::vector<int> args = var->get_args();
-        if (var->get_type().equals(StateType::STRING)) {
-            instructions->push_back(Instruction(InstructionType::SET, args, expr.get_string_value()));
-        } else {
-            args.push_back(expr.get_value());
-            instructions->push_back(Instruction(InstructionType::SET, args));
-        }
-    } else {
-        merge(instructions, expr.generate_push_instructions(builder));
-        builder->update_var(var);
-        std::vector<int> args = var->get_args();
-        merge(&args, expr.get_move_args(builder));
-        instructions->push_back(Instruction(InstructionType::MOVE, args));
-        merge(instructions, expr.generate_pop_instructions(builder));
-    }
+    std::vector<uint> args = var->get_args();
+    merge(instructions, expr.generate_push_instructions(builder));
+    merge(&args, expr.get_args(builder));
+    instructions->push_back(Instruction(InstructionType::MOVE, args, expr.get_states(builder)));
+    merge(instructions, expr.generate_pop_instructions(builder));
+    // if (expr.can_be_set()) {
+    //     std::vector<uint> args = var->get_args();
+    //     if (var->get_type().equals(StateType::STRING)) {
+    //         // instructions->push_back(Instruction(InstructionType::SET, args, expr.get_string_value()));
+    //     } else {
+    //         args.push_back(expr.get_value());
+    //         // instructions->push_back(Instruction(InstructionType::SET, args));
+    //     }
+    // } else {
+    //     merge(instructions, expr.generate_push_instructions(builder));
+    //     std::vector<uint> args = var->get_args();
+    //     merge(&args, expr.get_args(builder));
+    //     // instructions->push_back(Instruction(InstructionType::MOVE, args));
+    //     merge(instructions, expr.generate_pop_instructions(builder));
+    // }
 }
 
 std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
@@ -250,27 +254,27 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
         case StatementType::FUNCTION_CREATE:
         case StatementType::FUNCTION_DECLARE: {
             TypeExpression type_expr = type_expressions.back();
-            instructions.push_back(Instruction(InstructionType::PUSH, type_expr.get_type_holder().get_args()));
             std::string ident = identifiers.back();
             if (builder->has_var(ident)) {
                 already_declared(ident);
             }
-            builder->push_var(ident, new Var(type_expr.get_type_holder(), builder->get_frame()));
-            Var* var = builder->get_var(ident);
+            Var* var = new Var(type_expr.get_type_holder(), builder->get_var_key());
+            builder->push_var(ident, var);
+            instructions.push_back(Instruction(InstructionType::PUSH, { var->get_key() }));
             if (type == StatementType::VAR_CREATE) {
                 Expression expr = expressions.back();
                 handle_set(builder, &instructions, var, expr);
             } else if (type == StatementType::FUNCTION_CREATE) {
-                instructions.push_back(Instruction(InstructionType::SET, { frame_negate(builder->get_frame()), 0 }));
-                Scope* scope = new Scope(ScopeType::FUNC, builder->get_frame() + 1);
-                builder->push_scope(scope);
-                Statement sub_statement = statements.back();
-                std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
-                instructions.push_back(Instruction(InstructionType::SKIP, { (int)sub_instructions.size() + 2 }));
-                merge(&instructions, sub_instructions);
-                instructions.push_back(Instruction(InstructionType::BACK, {}));
-                instructions.push_back(Instruction(InstructionType::EXIT, {}));
-                delete builder->pop_scope();
+                // // instructions.push_back(Instruction(InstructionType::SET, { frame_negate(builder->get_frame()), 0 }));
+                // Scope* scope = new Scope(ScopeType::FUNC, builder->get_frame() + 1);
+                // builder->push_scope(scope);
+                // Statement sub_statement = statements.back();
+                // std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
+                // // instructions.push_back(Instruction(InstructionType::SKIP, { (int)sub_instructions.size() + 2 }));
+                // merge(&instructions, sub_instructions);
+                // // instructions.push_back(Instruction(InstructionType::BACK, {}));
+                // // instructions.push_back(Instruction(InstructionType::EXIT, {}));
+                // delete builder->pop_scope();
             }
         } break;
         case StatementType::COMPOUND: {
@@ -290,9 +294,9 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             if (type == StatementType::SET) {
                 handle_set(builder, &instructions, var, expr_from);
             } else {
-                std::vector<int> args = var->get_args();
+                std::vector<uint> args = var->get_args();
                 merge(&args, args);
-                merge(&args, expr_from.get_move_args(builder));
+                merge(&args, expr_from.get_args(builder));
                 instructions.push_back(Instruction(InstructionType::ADD, args));
             }
             merge(&instructions, expr.generate_pop_instructions(builder));

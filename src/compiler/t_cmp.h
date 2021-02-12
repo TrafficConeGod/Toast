@@ -15,7 +15,6 @@ namespace toast {
     void expected(std::string expected, std::string actual);
     void already_declared(std::string name);
     void not_declared(std::string name);
-    std::vector<int> offset_args(std::vector<int> args, int amount);
     int frame_negate(int frame_key);
     template<typename T>
     void merge(std::vector<T>* first, std::vector<T> second) {
