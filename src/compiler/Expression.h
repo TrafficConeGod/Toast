@@ -19,6 +19,7 @@ namespace toast {
             std::vector<TypeExpression> type_expressions;
             std::vector<std::string> identifiers;
             std::vector<std::any> values;
+            bool has_var_key = false;
             uint var_key;
             void parse_middle(std::deque<Token>* tokens);
         public:

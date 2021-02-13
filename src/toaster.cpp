@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     std::vector<Instruction> instructions = generate_instruction_list(source);
     std::string toasted = make_human_readable(instructions);
     std::cout << toasted << std::endl;
-    execute(instructions);
+    // execute(instructions);
 
 
     // std::vector<Instruction> instructions = {

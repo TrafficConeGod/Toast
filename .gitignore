@@ -2,4 +2,5 @@ out
 .vscode
 run.sh
 debug.sh
+qrun.sh
 ignore

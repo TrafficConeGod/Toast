@@ -271,20 +271,20 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
         case ExpressionType::ADD:
         case ExpressionType::SUBTRACT:
         case ExpressionType::MULTIPLY:
-        case ExpressionType::DIVIDE: {
-            var_key = builder->get_var_key();
-            instructions.push_back(Instruction(InstructionType::PUSH, { var_key }));
-            Expression expr_1 = expressions[0];
-            Expression expr_2 = expressions[1];
+        case ExpressionType::DIVIDE:
+        case ExpressionType::EQUALS:
+        case ExpressionType::NOT_EQUALS: {
+            instructions.push_back(Instruction(InstructionType::PUSH, get_args(builder)));
+            Expression* expr_1 = &expressions[0];
+            Expression* expr_2 = &expressions[1];
             std::vector<uint> args = get_args(builder);
-            std::vector<uint> args_1 = expr_1.get_args(builder);
-            merge(&instructions, expr_1.generate_push_instructions(builder));
-            std::vector<uint> args_2 = expr_2.get_args(builder);
-            merge(&instructions, expr_2.generate_push_instructions(builder));
+            std::vector<uint> args_1 = expr_1->get_args(builder);
+            merge(&instructions, expr_1->generate_push_instructions(builder));
+            std::vector<uint> args_2 = expr_2->get_args(builder);
+            merge(&instructions, expr_2->generate_push_instructions(builder));
             merge(&args, args_1);
             merge(&args, args_2);
             // builder->add_temp_offset();
-            builder->push_var();
             InstructionType instruction_type;
             switch (type) {
                 case ExpressionType::ADD:
@@ -299,10 +299,16 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
                 case ExpressionType::DIVIDE:
                     instruction_type = InstructionType::DIVIDE;
                     break;
+                case ExpressionType::EQUALS:
+                    instruction_type = InstructionType::EQUALS;
+                    break;
+                case ExpressionType::NOT_EQUALS:
+                    // instruction_type = InstructionType::NOT_EQUALS;
+                    break;
             }
             std::vector<State*> states = get_states(builder);
-            std::vector<State*> states_1 = expr_1.get_states(builder);
-            std::vector<State*> states_2 = expr_2.get_states(builder);
+            std::vector<State*> states_1 = expr_1->get_states(builder);
+            std::vector<State*> states_2 = expr_2->get_states(builder);
             merge(&states, states_1);
             merge(&states, states_2);
             instructions.push_back(Instruction(instruction_type, args, states));
@@ -337,7 +343,7 @@ std::vector<Instruction> Expression::generate_pop_instructions(Builder* builder)
             merge(&instructions, expr_1.generate_pop_instructions(builder));
             merge(&instructions, expr_2.generate_pop_instructions(builder));
             // builder->sub_temp_offset();
-            instructions.push_back(Instruction(InstructionType::POP, { var_key }));
+            instructions.push_back(Instruction(InstructionType::POP, get_args(builder)));
         } break;
         case ExpressionType::FUNCTION:
             // builder->sub_temp_offset();
@@ -357,8 +363,14 @@ std::vector<uint> Expression::get_args(Builder* builder) {
             Var* var = builder->get_var(ident);
             return { var->get_key() };
         } break;
-        default:
-            return { var_key };
+        default: {
+            if (!this->has_var_key) {
+                this->has_var_key = true;
+                this->var_key = builder->get_var_key();
+                builder->push_var();
+            }
+            return { this->var_key };
+        } break;
     }
 }
 
