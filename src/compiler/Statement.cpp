@@ -301,6 +301,16 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             }
             merge(&instructions, expr->generate_pop_instructions(builder));
         } break;
+        case StatementType::INCREMENT:
+        case StatementType::DECREMENT: {
+            Expression* expr = &expressions.back();
+            std::vector<uint> args = expr->get_args(builder);
+            merge(&args, args);
+            args.push_back(0);
+            merge(&instructions, expr->generate_push_instructions(builder));
+            instructions.push_back(Instruction(InstructionType::ADD, args, { new State(StateTypeHolder(StateType::INT), 1) }));
+            merge(&instructions, expr->generate_pop_instructions(builder));
+        } break;
         case StatementType::RETURN: {
             Expression* expr = &expressions.back();
             merge(&instructions, expr->generate_push_instructions(builder));

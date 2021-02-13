@@ -20,6 +20,7 @@ namespace toast {
         MULTIPLY,
         DIVIDE,
         EQUALS,
+        NOT_EQUALS,
         IF,
         LENGTH,
         STREAM_IN,

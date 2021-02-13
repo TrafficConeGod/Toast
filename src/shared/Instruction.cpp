@@ -109,6 +109,9 @@ std::string Instruction::make_human_readable() {
         case InstructionType::COMPARE:
             stream << "COMPARE";
             break;
+        case InstructionType::NOT_EQUALS:
+            stream << "NOT_EQUALS";
+            break;
         default:
             throw Exception("No name for instruction type");
     }

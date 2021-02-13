@@ -311,7 +311,7 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
                     instruction_type = InstructionType::EQUALS;
                     break;
                 case ExpressionType::NOT_EQUALS:
-                    // instruction_type = InstructionType::NOT_EQUALS;
+                    instruction_type = InstructionType::NOT_EQUALS;
                     break;
             }
             std::vector<State*> states = get_states(builder);

@@ -1,16 +1,28 @@
-int a = 2
-int b = (a * 2) + 1
+// int a = 2
+// int b = (a * 2) + 1
+
+// int my_func() {
+//     int c = b + 100
+//     c++
+//     return c
+// }
+
+// int d = a
+
+// my_func()
+
+// if (a == 2) {
+//     int k = 10
+// }
+
+int c = 0
 
 int my_func() {
-    int c = b + 100
-    c++
-    return c
+    if (c != 10) {
+        c++
+        my_func()
+    }
+    return 0
 }
-
-int d = a
 
 my_func()
-
-if (a == 2) {
-    int k = 10
-}

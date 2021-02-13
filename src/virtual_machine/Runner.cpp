@@ -152,13 +152,18 @@ void Runner::handle_instruction() {
         case InstructionType::BACKWARD: {
             position -= args[0];
         } break;
-        case InstructionType::EQUALS: {
+        case InstructionType::EQUALS:
+        case InstructionType::NOT_EQUALS: {
             std::vector<State*> states = get_states(instruction);
             State* into = states[0];
             State* op_1 = states[1];
             State* op_2 = states[2];
             into->set_type(StateTypeHolder(StateType::BOOL));
-            into->set_value<bool>(op_1->equals(op_2));
+            if (type == InstructionType::EQUALS) {
+                into->set_value<bool>(op_1->equals(op_2));
+            } else {
+                into->set_value<bool>(!(op_1->equals(op_2)));
+            }
         } break;
         case InstructionType::COMPARE: {
             std::vector<State*> states = get_states(instruction);
