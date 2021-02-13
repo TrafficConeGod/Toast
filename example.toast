@@ -7,7 +7,7 @@ int my_func() {
     return c
 }
 
-// int d = a
+int d = a
 
 my_func()
 

@@ -189,7 +189,7 @@ void Runner::handle_instruction() {
             into->set_value<StateFunction>(StateFunction(position + 1, clone));
         } break;
         case InstructionType::CALL: {
-            return_stack.push_back(position + 1);
+            return_stack.push_back(position);
             std::vector<State*> states = get_states(instruction);
             State* into = states[0];
             State* from = states[1];
