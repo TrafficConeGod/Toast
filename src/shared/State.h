@@ -21,7 +21,7 @@ namespace toast {
             void set_type(StateTypeHolder type);
             std::any get_value_any();
             void move_value_from(State* state);
-            std::string get_cpp_string();
+            std::string get_displayable_string();
             bool equals(State* state);
             void set_temp(bool temp);
             void clean();

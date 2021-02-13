@@ -79,17 +79,7 @@ State* Runner::pop_state(uint state_key) {
     std::cout << "Popped state";
     if (!state->is_empty()) {
         std::cout << " of type " << (int)state->get_type().get_main_type();
-        switch (state->get_type().get_main_type()) {
-            case StateType::INT:
-                std::cout << " and value " << state->get_value<int>();
-                break;
-            case StateType::BOOL:
-                std::cout << " and value " << state->get_value<bool>();
-                break;
-            case StateType::STRING:
-                std::cout << " and value " << state->get_value<std::string>();
-                break;
-        }
+        std::cout << " and value " << state->get_displayable_string();
     }
     std::cout << std::endl;
     return state;

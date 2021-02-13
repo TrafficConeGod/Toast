@@ -1,4 +1,5 @@
 #include "../shared/State.h"
+#include <sstream>
 using namespace toast;
 
 State::State() {
@@ -98,4 +99,20 @@ State* State::clone() {
 
 bool State::is_empty() {
     return !has_value;
+}
+
+std::string State::get_displayable_string() {
+    std::stringstream stream;
+    switch (get_type().get_main_type()) {
+        case StateType::INT:
+            stream << get_value<int>();
+            break;
+        case StateType::BOOL:
+            stream << get_value<bool>();
+            break;
+        case StateType::STRING:
+            stream << get_value<std::string>();
+            break;
+    }
+    return stream.str();
 }

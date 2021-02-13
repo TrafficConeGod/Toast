@@ -116,6 +116,10 @@ std::string Instruction::make_human_readable() {
         int arg = get_args()[j];
         stream << " " << arg;
     }
+    stream << " ";
+    for (State* state : states) {
+        stream << "{" << (uint)state->get_type().get_main_type() << " " << state->get_displayable_string() << "}";
+    }
     stream << std::endl;
     return stream.str();
 }
