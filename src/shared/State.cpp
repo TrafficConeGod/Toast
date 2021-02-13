@@ -113,6 +113,9 @@ std::string State::get_displayable_string() {
         case StateType::STRING:
             stream << get_value<std::string>();
             break;
+        case StateType::FUNC:
+            stream << "function";
+            break;
     }
     return stream.str();
 }

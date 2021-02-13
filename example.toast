@@ -11,6 +11,6 @@ int d = a
 
 my_func()
 
-// if (a == 2) {
-//     int k = 10
-// }
+if (a == 2) {
+    int k = 10
+}
