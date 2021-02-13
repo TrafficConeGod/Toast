@@ -153,7 +153,13 @@ void Expression::parse_middle(std::deque<Token>* tokens) {
     ExpressionType old_type = type;
     switch (middle.get_type()) {
         case TokenType::LEFT_PAREN: {
+            Expression expression = Expression(old_type, statements, expressions, type_expressions, identifiers, values);
             type = ExpressionType::FUNCTION_CALL;
+            statements = {};
+            expressions = { expression };
+            type_expressions = {};
+            identifiers = {};
+            values = {};
             if (tokens->front().get_type() != TokenType::RIGHT_PAREN) {
                 for (;;) {
                     Token token = tokens->front();
@@ -207,6 +213,8 @@ void Expression::parse_middle(std::deque<Token>* tokens) {
     statements = {};
     expressions = { expression };
     type_expressions = {};
+    identifiers = {};
+    values = {};
     expressions.push_back(Expression(tokens));
 }
 
@@ -327,6 +335,13 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
             // instructions.push_back(Instruction(InstructionType::EXIT, {}));
             delete builder->pop_scope();
         } break;
+        case ExpressionType::FUNCTION_CALL: {
+            Expression* func_expr = &expressions[0];
+            std::vector<uint> args = get_args(builder);
+            instructions.push_back(Instruction(InstructionType::PUSH, args));
+            merge(&args, func_expr->get_args(builder));
+            instructions.push_back(Instruction(InstructionType::CALL, args));
+        } break;
     }
     return instructions;
 }
@@ -345,10 +360,13 @@ std::vector<Instruction> Expression::generate_pop_instructions(Builder* builder)
             // builder->sub_temp_offset();
             instructions.push_back(Instruction(InstructionType::POP, get_args(builder)));
         } break;
-        case ExpressionType::FUNCTION:
+        case ExpressionType::FUNCTION: {
             // builder->sub_temp_offset();
             // instructions.push_back(Instruction(InstructionType::POP, {}));
-            break;
+        } break;
+        case ExpressionType::FUNCTION_CALL: {
+            instructions.push_back(Instruction(InstructionType::POP, get_args(builder)));
+        } break;
     }
     return instructions;
 }

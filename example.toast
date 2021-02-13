@@ -9,7 +9,7 @@ int my_func() {
 
 // int d = a
 
-// my_func()
+my_func()
 
 // if (a == 2) {
 //     int k = 10

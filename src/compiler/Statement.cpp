@@ -307,6 +307,11 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             instructions.push_back(Instruction(InstructionType::RETURN, expr->get_args(builder), expr->get_states(builder)));
             merge(&instructions, expr->generate_pop_instructions(builder));
         } break;
+        case StatementType::EMPTY: {
+            Expression* expr = &expressions.back();
+            merge(&instructions, expr->generate_push_instructions(builder));
+            merge(&instructions, expr->generate_pop_instructions(builder));
+        } break;
     }
     return instructions;
 }

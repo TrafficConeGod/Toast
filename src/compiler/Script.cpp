@@ -20,15 +20,15 @@ void Script::clean() {
         if (statement.get_type() != StatementType::IGNORE) {
             statement.clean();
             cleaned.push_back(statement);
-            // std::cout << statement.get_type() << " types: {";
-            // for (TypeExpression expression : statement.get_type_expressions()) {
-            //     std::cout << " " << expression.get_type();
-            // }
-            // std::cout << " } expressions: {";
-            // for (Expression expression : statement.get_expressions()) {
-            //     std::cout << " " << expression.get_type();
-            // }
-            // std::cout << " }" << std::endl;
+            std::cout << (uint)statement.get_type() << " types: {";
+            for (TypeExpression expression : statement.get_type_expressions()) {
+                std::cout << " " << (uint)expression.get_type();
+            }
+            std::cout << " } expressions: {";
+            for (Expression expression : statement.get_expressions()) {
+                std::cout << " " << (uint)expression.get_type();
+            }
+            std::cout << " }" << std::endl;
         }
     }
     statements = cleaned;
