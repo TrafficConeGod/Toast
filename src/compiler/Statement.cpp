@@ -222,13 +222,13 @@ void Statement::clean() {
     }
 }
 
-void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructions, Var* var, Expression expr) {
-    expr.check_type(builder, var);
+void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructions, Var* var, Expression* expr) {
+    expr->check_type(builder, var);
     std::vector<uint> args = var->get_args();
-    merge(instructions, expr.generate_push_instructions(builder));
-    merge(&args, expr.get_args(builder));
-    instructions->push_back(Instruction(InstructionType::MOVE, args, expr.get_states(builder)));
-    merge(instructions, expr.generate_pop_instructions(builder));
+    merge(instructions, expr->generate_push_instructions(builder));
+    merge(&args, expr->get_args(builder));
+    instructions->push_back(Instruction(InstructionType::MOVE, args, expr->get_states(builder)));
+    merge(instructions, expr->generate_pop_instructions(builder));
     // if (expr.can_be_set()) {
     //     std::vector<uint> args = var->get_args();
     //     if (var->get_type().equals(StateType::STRING)) {
@@ -262,7 +262,7 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             builder->push_var(ident, var);
             instructions.push_back(Instruction(InstructionType::PUSH, { var->get_key() }));
             if (type == StatementType::VAR_CREATE) {
-                Expression expr = expressions.back();
+                Expression* expr = &expressions.back();
                 handle_set(builder, &instructions, var, expr);
             } else if (type == StatementType::FUNCTION_CREATE) {
                 // // instructions.push_back(Instruction(InstructionType::SET, { frame_negate(builder->get_frame()), 0 }));
@@ -287,19 +287,19 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
         case StatementType::MULTIPLY_SET:
         case StatementType::DIVIDE_SET:
         case StatementType::SET: {
-            Expression expr = expressions.front();
-            Expression expr_from = expressions[1];
-            merge(&instructions, expr.generate_push_instructions(builder));
-            Var* var = expr.get_var(builder);
+            Expression* expr = &expressions.front();
+            Expression* expr_from = &expressions[1];
+            merge(&instructions, expr->generate_push_instructions(builder));
+            Var* var = expr->get_var(builder);
             if (type == StatementType::SET) {
                 handle_set(builder, &instructions, var, expr_from);
             } else {
                 std::vector<uint> args = var->get_args();
                 merge(&args, args);
-                merge(&args, expr_from.get_args(builder));
+                merge(&args, expr_from->get_args(builder));
                 instructions.push_back(Instruction(InstructionType::ADD, args));
             }
-            merge(&instructions, expr.generate_pop_instructions(builder));
+            merge(&instructions, expr->generate_pop_instructions(builder));
         } break;
     }
     return instructions;
