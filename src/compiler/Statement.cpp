@@ -307,6 +307,21 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             instructions.push_back(Instruction(InstructionType::RETURN, expr->get_args(builder), expr->get_states(builder)));
             merge(&instructions, expr->generate_pop_instructions(builder));
         } break;
+        case StatementType::IF: {
+            Expression* expr = &expressions.back();
+            merge(&instructions, expr->generate_push_instructions(builder));
+            instructions.push_back(Instruction(InstructionType::COMPARE, expr->get_args(builder), expr->get_states(builder)));
+            merge(&instructions, expr->generate_pop_instructions(builder));
+            instructions.push_back(Instruction(InstructionType::IF, {}));
+            Scope* scope = new Scope(ScopeType::BLOCK, 1);
+            builder->push_scope(scope);
+            Statement sub_statement = statements.back();
+            std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
+            merge(&sub_instructions, scope->get_instructions());
+            instructions.push_back(Instruction(InstructionType::FORWARD, { (uint)sub_instructions.size() }));
+            merge(&instructions, sub_instructions);
+            delete builder->pop_scope();
+        } break;
         case StatementType::EMPTY: {
             Expression* expr = &expressions.back();
             merge(&instructions, expr->generate_push_instructions(builder));
