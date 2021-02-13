@@ -265,16 +265,16 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
                 Expression* expr = &expressions.back();
                 handle_set(builder, &instructions, var, expr);
             } else if (type == StatementType::FUNCTION_CREATE) {
-                // // instructions.push_back(Instruction(InstructionType::SET, { frame_negate(builder->get_frame()), 0 }));
-                // Scope* scope = new Scope(ScopeType::FUNC, builder->get_frame() + 1);
-                // builder->push_scope(scope);
-                // Statement sub_statement = statements.back();
-                // std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
-                // // instructions.push_back(Instruction(InstructionType::SKIP, { (int)sub_instructions.size() + 2 }));
-                // merge(&instructions, sub_instructions);
-                // // instructions.push_back(Instruction(InstructionType::BACK, {}));
-                // // instructions.push_back(Instruction(InstructionType::EXIT, {}));
-                // delete builder->pop_scope();
+                instructions.push_back(Instruction(InstructionType::FUNCTION, { var->get_key(), 0 }, { new State(StateTypeHolder(StateType::FUNC), 0) }));
+                Scope* scope = new Scope(ScopeType::FUNC, 1);
+                builder->push_scope(scope);
+                Statement sub_statement = statements.back();
+                std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
+                merge(&sub_instructions, scope->get_instructions());
+                sub_instructions.push_back(Instruction(InstructionType::EXIT, {}));
+                instructions.push_back(Instruction(InstructionType::FORWARD, { (uint)sub_instructions.size() }));
+                merge(&instructions, sub_instructions);
+                delete builder->pop_scope();
             }
         } break;
         case StatementType::COMPOUND: {
@@ -299,6 +299,12 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
                 merge(&args, expr_from->get_args(builder));
                 instructions.push_back(Instruction(InstructionType::ADD, args));
             }
+            merge(&instructions, expr->generate_pop_instructions(builder));
+        } break;
+        case StatementType::RETURN: {
+            Expression* expr = &expressions.back();
+            merge(&instructions, expr->generate_push_instructions(builder));
+            instructions.push_back(Instruction(InstructionType::RETURN, expr->get_args(builder), expr->get_states(builder)));
             merge(&instructions, expr->generate_pop_instructions(builder));
         } break;
     }
