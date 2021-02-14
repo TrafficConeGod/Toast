@@ -24,5 +24,6 @@ namespace toast {
             void push_scope(Scope* scope);
             Scope* pop_scope();
             uint get_var_key();
+            std::vector<Scope*> get_scopes();
     };
 }

@@ -265,8 +265,9 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
                 Expression* expr = &expressions.back();
                 handle_set(builder, &instructions, var, expr);
             } else if (type == StatementType::FUNCTION_CREATE) {
-                instructions.push_back(Instruction(InstructionType::FUNCTION, { var->get_key(), 0 }, { new State(StateTypeHolder(StateType::FUNC), 0) }));
-                Scope* scope = new Scope(ScopeType::FUNC, 1);
+                StateTypeHolder type_holder = type_expr.get_type_holder();
+                instructions.push_back(Instruction(InstructionType::FUNCTION, { var->get_key(), 0 }, { new State(type_holder, 0) }));
+                Scope* scope = new Scope(ScopeType::FUNC, 1, type_holder);
                 builder->push_scope(scope);
                 Statement sub_statement = statements.back();
                 std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
@@ -316,6 +317,15 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             merge(&instructions, expr->generate_push_instructions(builder));
             instructions.push_back(Instruction(InstructionType::RETURN, expr->get_args(builder), expr->get_states(builder)));
             merge(&instructions, expr->generate_pop_instructions(builder));
+            for (int i = builder->get_scopes().size() - 1;; i--) {
+                Scope* scope = builder->get_scopes()[i];
+                merge(&instructions, scope->get_instructions());
+                if (scope->get_type() == ScopeType::FUNC) {
+                    expr->check_type(builder, scope->get_function_type().get_sub_types().front());
+                    break;
+                }
+            }
+            instructions.push_back(Instruction(InstructionType::EXIT, {}));
         } break;
         case StatementType::IF: {
             Expression* expr = &expressions.back();

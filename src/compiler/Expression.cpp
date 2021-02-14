@@ -440,6 +440,13 @@ void Expression::check_type(Builder* builder, Var* var) {
     }
 }
 
+void Expression::check_type(Builder* builder, StateTypeHolder type) {
+    if (!type.equals(get_type_holder(builder))) {
+        std::cout << "Types are incompatible" << std::endl;
+        throw CompilerException();
+    }
+}
+
 Var* Expression::get_var(Builder* builder) {
     switch (type) {
         case ExpressionType::IDENTIFIER: {

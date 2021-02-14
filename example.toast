@@ -18,11 +18,11 @@
 int c = 0
 
 int my_func() {
-    if (c != 10) {
-        c++
-        my_func()
-    }
-    return 0
+    // if (c != 10) {
+    //     c++
+    //     my_func()
+    // }
+    return 10
 }
 
 my_func()

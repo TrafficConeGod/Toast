@@ -80,3 +80,7 @@ Scope* Builder::pop_scope() {
 uint Builder::get_var_key() {
     return var_key;
 }
+
+std::vector<Scope*> Builder::get_scopes() {
+    return scope_stack;
+}

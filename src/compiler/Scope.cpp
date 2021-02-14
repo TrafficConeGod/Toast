@@ -7,6 +7,12 @@ Scope::Scope(ScopeType type, int stack_frame) {
     this->stack_frame = stack_frame;
 }
 
+Scope::Scope(ScopeType type, int stack_frame, StateTypeHolder function_type) {
+    this->type = type;
+    this->stack_frame = stack_frame;
+    this->function_type.push_back(function_type);
+}
+
 Scope::~Scope() {
     for (Var* var : var_stack) {
         delete var;
@@ -59,4 +65,8 @@ std::vector<Instruction> Scope::get_instructions() {
         instructions.push_back(Instruction(InstructionType::POP, { var->get_key() }));
     }
     return instructions;
+}
+
+StateTypeHolder Scope::get_function_type() {
+    return function_type.back();
 }

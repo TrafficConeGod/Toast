@@ -41,6 +41,7 @@ namespace toast {
             std::vector<State*> get_states(Builder* builder);
             StateTypeHolder get_type_holder(Builder* builder);
             void check_type(Builder* builder, Var* state);
+            void check_type(Builder* builder, StateTypeHolder type);
             Var* get_var(Builder* builder);
             // bool can_be_quick_moved() {
             //     switch (type) {
