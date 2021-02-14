@@ -16,8 +16,8 @@ namespace toast {
             std::vector<Instruction> instructions;
             std::vector<Frame*> frames;
             std::vector<uint> return_stack;
+            std::vector<State*> return_states;
             std::deque<State*> call_args;
-            State* return_state;
             State* compare_state = new State();
         public:
             Runner(std::vector<Instruction>);

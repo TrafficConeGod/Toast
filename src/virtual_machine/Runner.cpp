@@ -191,12 +191,13 @@ void Runner::handle_instruction() {
             StateFunction function = from->get_value<StateFunction>();
             position = function.get_position();
             frames.push_back(function.get_frame().clone_ptr());
-            return_state = into;
+            return_states.push_back(into);
         } break;
         case InstructionType::RETURN: {
             std::vector<State*> states = get_states(instruction);
             State* from = states[0];
-            return_state->move_value_from(from);
+            return_states.back()->move_value_from(from);
+            return_states.pop_back();
         } break;
         case InstructionType::EXIT: {
             delete frames.back();
