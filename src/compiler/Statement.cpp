@@ -142,6 +142,7 @@ Statement::Statement(std::deque<Token>* tokens) {
         default: {
             expressions.push_back(Expression(tokens));
             if (tokens->size() == 0) {
+                type = StatementType::EMPTY;
                 return;
             }
             Token middle = tokens->front();
@@ -248,7 +249,7 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
         case StatementType::FUNCTION_CREATE:
         case StatementType::FUNCTION_DECLARE: {
             TypeExpression type_expr = type_expressions.back();
-            std::string ident = identifiers.back();
+            std::string ident = identifiers.front();
             if (builder->has_var(ident)) {
                 already_declared(ident);
             }

@@ -15,9 +15,8 @@ std::vector<Instruction> toast::generate_instruction_list(std::string source) {
         //     std::cout << token.get_type() << " " << token.get_literal() << std::endl;
         // }
         Parser parser(tokens);
-        // Builder builder(parser.get_script());
-        // return builder.get_instructions();
-        return {};
+        Builder builder(parser.get_script());
+        return builder.get_instructions();
         // Builder builder = Builder(tokens);
         // std::vector<Instruction> instructions = builder.get_instructions();
         // return instructions;
