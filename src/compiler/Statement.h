@@ -27,7 +27,6 @@ namespace toast {
             std::vector<Expression> get_expressions();
             std::vector<std::string> get_identifiers();
             std::vector<Instruction> generate_instructions(Builder* builder);
-            void clean();
     };
 }
 

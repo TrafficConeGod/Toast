@@ -21,7 +21,11 @@ Statement::Statement(std::deque<Token>* tokens) {
             tokens->pop_front();
             do {
                 Token token = tokens->front();
-                statements.push_back(Statement(tokens));
+                if (token.get_type() == TokenType::NEW_LINE) {
+                    tokens->pop_front();
+                } else {
+                    statements.push_back(Statement(tokens));
+                }
             } while (tokens->front().get_type() != TokenType::RIGHT_BRACE);
             tokens->pop_front();
         } break;
@@ -123,8 +127,7 @@ Statement::Statement(std::deque<Token>* tokens) {
         } break;
         case TokenType::FILE_END:
         case TokenType::NEW_LINE: {
-            type = StatementType::IGNORE;
-            tokens->pop_front();
+            expected("statement", token.get_literal());
         } break;
         // expression = expression
         default: {
@@ -197,29 +200,6 @@ std::vector<TypeExpression> Statement::get_type_expressions() {
 }
 StatementType Statement::get_type() {
     return type;
-}
-
-void Statement::clean() {
-    {
-        std::vector<Statement> cleaned;
-        for (Statement statement : statements) {
-            if (statement.get_type() != StatementType::IGNORE) {
-                statement.clean();
-                cleaned.push_back(statement);
-            }
-        }
-        statements = cleaned;
-    }
-    {
-        std::vector<Expression> cleaned;
-        for (Expression expression : expressions) {
-            if (expression.get_type() != ExpressionType::IGNORE) {
-                expression.clean();
-                cleaned.push_back(expression);
-            }
-        }
-        expressions = cleaned;
-    }
 }
 
 void Statement::handle_set(Builder* builder, std::vector<Instruction>* instructions, Var* var, Expression* expr) {

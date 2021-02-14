@@ -118,8 +118,7 @@ Expression::Expression(std::deque<Token>* tokens) {
         } break;
         case TokenType::FILE_END:
         case TokenType::NEW_LINE: {
-            type = ExpressionType::IGNORE;
-            tokens->pop_front();
+            expected("expression", token.get_literal());
         } break;
         default: {
             expected("expression", token.get_literal());
@@ -241,30 +240,6 @@ std::vector<std::string> Expression::get_identifiers() {
 std::vector<std::any> Expression::get_values() {
     return values;
 }
-
-void Expression::clean() {
-    {
-        std::vector<Statement> cleaned;
-        for (Statement statement : statements) {
-            if (statement.get_type() != StatementType::IGNORE) {
-                statement.clean();
-                cleaned.push_back(statement);
-            }
-        }
-        statements = cleaned;
-    }
-    {
-        std::vector<Expression> cleaned;
-        for (Expression expression : expressions) {
-            if (expression.get_type() != ExpressionType::IGNORE) {
-                expression.clean();
-                cleaned.push_back(expression);
-            }
-        }
-        expressions = cleaned;
-    }
-}
-
 int Expression::get_value() {
     return std::any_cast<int>(values.back());
 }

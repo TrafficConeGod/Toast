@@ -16,6 +16,5 @@ namespace toast {
         public:
             Script(std::deque<Token>* tokens);
             std::vector<Statement> get_statements();
-            void clean();
     };
 }

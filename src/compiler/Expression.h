@@ -31,7 +31,6 @@ namespace toast {
             std::vector<TypeExpression> get_type_expressions();
             std::vector<std::string> get_identifiers();
             std::vector<std::any> get_values();
-            void clean();
             bool can_be_set();
             int get_value();
             std::string get_string_value();
