@@ -1,4 +1,5 @@
 #include "Token.h"
+#include "CompilerException.h"
 using namespace toast;
 
 Token::Token(TokenType type, std::string literal) {
@@ -7,6 +8,10 @@ Token::Token(TokenType type, std::string literal) {
 }
 
 TokenType Token::get_type() {
+    if (type == TokenType::ILLEGAL) {
+        std::cout << "Illegal token accessed" << std::endl;
+        throw CompilerException();
+    }
     return type;
 }
 std::string Token::get_literal() {

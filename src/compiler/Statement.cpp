@@ -141,10 +141,6 @@ Statement::Statement(std::deque<Token>* tokens) {
         // expression = expression also includes blank expression
         default: {
             expressions.push_back(Expression(tokens));
-            if (tokens->size() == 0) {
-                type = StatementType::EMPTY;
-                return;
-            }
             Token middle = tokens->front();
             switch (middle.get_type()) {
                 case TokenType::EQUALS:

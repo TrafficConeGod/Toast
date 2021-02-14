@@ -29,4 +29,4 @@ int my_func(bool a) {
     return 0;
 }
 
-my_func(true)
+int x = my_func()
