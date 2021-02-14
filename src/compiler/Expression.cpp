@@ -313,6 +313,10 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
         } break;
         case ExpressionType::FUNCTION_CALL: {
             Expression* func_expr = &expressions[0];
+            // StateTypeHolder func_type = func_expr->get_var(builder)->get_type();
+            // for (int i = 1; i < func_type.get_sub_types().size(); i++) {
+            //     StateTypeHolder arg_type = func_type.get_sub_types()[i];
+            // }
             std::vector<uint> args = get_args(builder);
             instructions.push_back(Instruction(InstructionType::PUSH, args));
             merge(&args, func_expr->get_args(builder));
@@ -397,8 +401,9 @@ StateTypeHolder Expression::get_type_holder(Builder* builder) {
         }
         case ExpressionType::FUNCTION: {
             std::vector<StateTypeHolder> sub_types = {};
-            for (TypeExpression type_expr : type_expressions) {
-                sub_types.push_back(type_expr.get_type_holder());
+            for (Expression expr : expressions) {
+                std::cout << (uint)expr.get_type() << std::endl;
+                sub_types.push_back(expr.get_type_holder(builder));
             }
             return StateTypeHolder(StateType::FUNC, sub_types);
         }
@@ -416,7 +421,10 @@ void Expression::check_type(Builder* builder, Var* var) {
 void Expression::check_type(Builder* builder, StateTypeHolder type) {
     bool matches = true;
     if (this->type == ExpressionType::FUNCTION_CALL) {
-        if (!type.equals(get_type_holder(builder).get_sub_types()[0])) {
+        Var* var = get_var(builder);
+        StateTypeHolder return_type = var->get_type();
+        StateTypeHolder check_type = return_type.get_sub_types()[0];
+        if (!type.equals(check_type)) {
             matches = false;
         }
     } else {
@@ -440,6 +448,9 @@ Var* Expression::get_var(Builder* builder) {
             }
             Var* var = builder->get_var(ident);
             return var;
+        } break;
+        case ExpressionType::FUNCTION_CALL: {
+            return expressions.front().get_var(builder);
         } break;
         default:
             std::cout << "Not identifiying" << std::endl;
