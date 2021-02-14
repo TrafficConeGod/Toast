@@ -15,18 +15,13 @@
 //     int k = 10
 // }
 
-// int my_func(int c) {
-//     if (c != 10) {
-//         c++
-//         my_func()
-//     }
-//     return c + 1
-// }
-
-// int x = my_func(0)
-
-int my_func(int a) {
-    return a + 1;
+int my_func(int c) {
+    int v = c
+    if (c != 10) {
+        c++
+        v = my_func(c)
+    }
+    return v
 }
 
-int x = my_func(my_func(1))
+int x = my_func(0)
