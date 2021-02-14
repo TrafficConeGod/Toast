@@ -127,6 +127,9 @@ Expression::Expression(std::deque<Token>* tokens) {
 }
 
 void Expression::parse_middle(std::deque<Token>* tokens) {
+    if (tokens->size() == 0) {
+        return;
+    }
     Token middle = tokens->front();
     TokenType middle_type = middle.get_type();
     if (middle.is_end()) {
