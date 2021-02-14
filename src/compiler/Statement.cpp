@@ -97,7 +97,6 @@ Statement::Statement(std::deque<Token>* tokens) {
                 TypeExpression return_expr = type_expressions.back();
                 TypeExpression func_expr = TypeExpression(StateType::FUNC);
                 func_expr.add_expression(return_expr);
-                type_expressions[0] = func_expr;
                 tokens->pop_front();
                 if (tokens->front().get_type() != TokenType::RIGHT_PAREN) {
                     for (;;) {
@@ -105,7 +104,6 @@ Statement::Statement(std::deque<Token>* tokens) {
                         Token ident = tokens->front();
                         if (ident.get_type() != TokenType::IDENT) {
                             expected("identifier", ident.get_literal());
-                            throw CompilerException();
                         }
                         identifiers.push_back(ident.get_literal());
                         tokens->pop_front();
@@ -121,6 +119,7 @@ Statement::Statement(std::deque<Token>* tokens) {
                     type = StatementType::FUNCTION_CREATE;
                     statements.push_back(Statement(tokens));
                 }
+                type_expressions[0] = func_expr;
                 break;
             }
             if (middle.get_type() != TokenType::EQUALS) {
@@ -262,7 +261,16 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
                 Scope* scope = new Scope(ScopeType::FUNC, 1, type_holder);
                 builder->push_scope(scope);
                 Statement sub_statement = statements.back();
-                std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
+                std::vector<Instruction> sub_instructions;
+                for (int i = 1; i < identifiers.size(); i++) {
+                    std::string sub_ident = identifiers[i];
+                    StateTypeHolder sub_type = type_holder.get_sub_types()[i];
+                    Var* arg_var = new Var(sub_type, builder->get_var_key());
+                    builder->push_var(sub_ident, arg_var);
+                    sub_instructions.push_back(Instruction(InstructionType::PUSH, { arg_var->get_key() }));
+                    sub_instructions.push_back(Instruction(InstructionType::ARG, { arg_var->get_key() }));
+                }
+                merge(&sub_instructions, sub_statement.generate_instructions(builder));
                 merge(&sub_instructions, scope->get_instructions());
                 sub_instructions.push_back(Instruction(InstructionType::EXIT, {}));
                 instructions.push_back(Instruction(InstructionType::FORWARD, { (uint)sub_instructions.size() }));
@@ -336,7 +344,6 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
         } break;
         case StatementType::EMPTY: {
             Expression* expr = &expressions.back();
-            std::cout << (uint)expr->get_type() << std::endl;
             merge(&instructions, expr->generate_push_instructions(builder));
             merge(&instructions, expr->generate_pop_instructions(builder));
         } break;

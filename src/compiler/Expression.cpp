@@ -103,7 +103,6 @@ Expression::Expression(std::deque<Token>* tokens) {
                     Token ident = tokens->front();
                     if (ident.get_type() != TokenType::IDENT) {
                         expected("identifier", ident.get_literal());
-                        throw CompilerException();
                     }
                     identifiers.push_back(ident.get_literal());
                     tokens->pop_front();

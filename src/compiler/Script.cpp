@@ -10,8 +10,19 @@ Script::Script(std::deque<Token>* tokens) {
             tokens->pop_front();
         } else {
             statements.push_back(Statement(tokens));
+            Statement statement = statements.back();
+            std::cout << (uint)statement.get_type() << " types: {";
+            for (TypeExpression expression : statement.get_type_expressions()) {
+                std::cout << " " << (uint)expression.get_type();
+            }
+            std::cout << " } expressions: {";
+            for (Expression expression : statement.get_expressions()) {
+                std::cout << " " << (uint)expression.get_type();
+            }
+            std::cout << " }" << std::endl;
         }
     }
+    std::cout << "Script parse ended" << std::endl;
 }
 
 std::vector<Statement> Script::get_statements() {
