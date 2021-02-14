@@ -188,10 +188,19 @@ void Runner::handle_instruction() {
             std::vector<State*> states = get_states(instruction);
             State* into = states[0];
             State* from = states[1];
+            for (int i = 2; i < states.size(); i++) {
+                call_args.push_back(states[i]);
+            }
             StateFunction function = from->get_value<StateFunction>();
             position = function.get_position();
             frames.push_back(function.get_frame().clone_ptr());
             return_states.push_back(into);
+        } break;
+        case InstructionType::ARG: {
+            std::vector<State*> states = get_states(instruction);
+            State* into = states[0];
+            into->move_value_from(call_args.front());
+            call_args.pop_front();
         } break;
         case InstructionType::RETURN: {
             std::vector<State*> states = get_states(instruction);

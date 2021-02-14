@@ -25,8 +25,8 @@
 
 // int x = my_func(0)
 
-int my_func(bool a) {
-    return 0;
+int my_func(int a) {
+    return a + 1;
 }
 
-int x = my_func(true)
+int x = my_func(my_func(1))
