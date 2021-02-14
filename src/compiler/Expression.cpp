@@ -313,14 +313,28 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
         } break;
         case ExpressionType::FUNCTION_CALL: {
             Expression* func_expr = &expressions[0];
-            // StateTypeHolder func_type = func_expr->get_var(builder)->get_type();
-            // for (int i = 1; i < func_type.get_sub_types().size(); i++) {
-            //     StateTypeHolder arg_type = func_type.get_sub_types()[i];
-            // }
+            StateTypeHolder func_type = func_expr->get_var(builder)->get_type();
+            std::vector<Instruction> pop_instructions;
             std::vector<uint> args = get_args(builder);
-            instructions.push_back(Instruction(InstructionType::PUSH, args));
+            std::vector<State*> states = get_states(builder);
             merge(&args, func_expr->get_args(builder));
-            instructions.push_back(Instruction(InstructionType::CALL, args));
+            merge(&states, func_expr->get_states(builder));
+            instructions.push_back(Instruction(InstructionType::PUSH, args));
+            for (int i = 1; i < func_type.get_sub_types().size(); i++) {
+                StateTypeHolder arg_type = func_type.get_sub_types()[i];
+                if (i >= expressions.size()) {
+                    std::cout << "No expression for argument" << std::endl;
+                    throw CompilerException();
+                }
+                Expression* arg_expr = &expressions[i];
+                arg_expr->check_type(builder, arg_type);
+                merge(&instructions, arg_expr->generate_push_instructions(builder));
+                merge(&args, arg_expr->get_args(builder));
+                merge(&states, arg_expr->get_states(builder));
+                merge(&pop_instructions, arg_expr->generate_pop_instructions(builder));
+            }
+            instructions.push_back(Instruction(InstructionType::CALL, args, states));
+            merge(&instructions, pop_instructions);
         } break;
     }
     return instructions;
