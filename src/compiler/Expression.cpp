@@ -170,6 +170,7 @@ void Expression::parse_middle(std::deque<Token>* tokens) {
                     }
                 }
             }
+            tokens->pop_front();
             parse_middle(tokens);
             return;
         }
@@ -409,14 +410,22 @@ StateTypeHolder Expression::get_type_holder(Builder* builder) {
 }
 
 void Expression::check_type(Builder* builder, Var* var) {
-    if (!var->get_type().equals(get_type_holder(builder))) {
-        std::cout << "Types are incompatible" << std::endl;
-        throw CompilerException();
-    }
+    check_type(builder, var->get_type());
 }
 
 void Expression::check_type(Builder* builder, StateTypeHolder type) {
-    if (!type.equals(get_type_holder(builder))) {
+    bool matches = true;
+    if (this->type == ExpressionType::FUNCTION_CALL) {
+        if (!type.equals(get_type_holder(builder).get_sub_types()[0])) {
+            matches = false;
+        }
+    } else {
+        if (!type.equals(get_type_holder(builder))) {
+            matches = false;
+        }
+    }
+
+    if (!matches) {
         std::cout << "Types are incompatible" << std::endl;
         throw CompilerException();
     }

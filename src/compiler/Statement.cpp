@@ -49,6 +49,13 @@ Statement::Statement(std::deque<Token>* tokens) {
             }
             statements.push_back(Statement(tokens));
         } break;
+        // If statement
+        case TokenType::WHILE_WORD: {
+            type = StatementType::WHILE;
+            tokens->pop_front();
+            expressions.push_back(Expression(tokens));
+            statements.push_back(Statement(tokens));
+        } break;
         // Return statement
         case TokenType::RETURN_WORD: {
             type = StatementType::RETURN;
@@ -58,6 +65,7 @@ Statement::Statement(std::deque<Token>* tokens) {
             if (!end.is_end()) {
                 expected("end", end.get_literal());
             }
+            tokens->pop_front();
         } break;
         // Delete statement
         case TokenType::DELETE_WORD: {
@@ -68,6 +76,7 @@ Statement::Statement(std::deque<Token>* tokens) {
             if (!end.is_end()) {
                 expected("end", end.get_literal());
             }
+            tokens->pop_front();
         } break;
         // type ident = expression
         case TokenType::TYPE_IDENT: {
@@ -124,6 +133,7 @@ Statement::Statement(std::deque<Token>* tokens) {
             if (!end.is_end()) {
                 expected("end", end.get_literal());
             }
+            tokens->pop_front();
         } break;
         case TokenType::FILE_END:
         case TokenType::NEW_LINE: {
@@ -171,14 +181,15 @@ Statement::Statement(std::deque<Token>* tokens) {
                     }
                     type = StatementType::STREAM_OUT;
                 } break;
-                case TokenType::RIGHT_PAREN:
-                    type = StatementType::EMPTY;
-                    break;
+                // case TokenType::RIGHT_PAREN:
+                //     type = StatementType::EMPTY;
+                //     break;
                 default:
-                    // // try to make an expression
-                    // tokens->push_front(token);
-                    // expressions.push_back(Expression(tokens));
-                    // return;
+                    // try to make an expression
+                    type = StatementType::EMPTY;
+                    tokens->push_front(token);
+                    expressions.push_back(Expression(tokens));
+                    return;
                     expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
             }
             tokens->pop_front();
