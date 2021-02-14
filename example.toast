@@ -22,7 +22,7 @@ int my_func() {
         c++
         my_func()
     }
-    // return c
+    return c + 1
 }
 
-my_func()
+int x = my_func()

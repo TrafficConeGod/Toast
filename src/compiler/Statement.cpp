@@ -139,9 +139,9 @@ Statement::Statement(std::deque<Token>* tokens) {
         case TokenType::NEW_LINE: {
             expected("statement", token.get_literal());
         } break;
-        // expression = expression
+        // expression = expression also includes blank expression
         default: {
-            expressions.push_back(tokens);
+            expressions.push_back(Expression(tokens));
             Token middle = tokens->front();
             switch (middle.get_type()) {
                 case TokenType::EQUALS:
@@ -181,20 +181,21 @@ Statement::Statement(std::deque<Token>* tokens) {
                     }
                     type = StatementType::STREAM_OUT;
                 } break;
-                // case TokenType::RIGHT_PAREN:
-                //     type = StatementType::EMPTY;
-                //     break;
-                default:
-                    // try to make an expression
+                case TokenType::FILE_END:
+                case TokenType::NEW_LINE:
                     type = StatementType::EMPTY;
-                    tokens->push_front(token);
-                    expressions.push_back(Expression(tokens));
-                    return;
+                    break;
+                default:
                     expected("= += -= *= /= ++ -- << or >>", middle.get_literal());
             }
-            tokens->pop_front();
+            if (type != StatementType::EMPTY) {
+                tokens->pop_front();
+                if (type != StatementType::INCREMENT && type != StatementType::DECREMENT) {
+                    expressions.push_back(Expression(tokens));
+                }
+            }
             if (!tokens->front().is_end()) {
-                expressions.push_back(Expression(tokens));
+                expected("end", tokens->front().get_literal());
             }
         } break;
     }
@@ -335,6 +336,7 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
         } break;
         case StatementType::EMPTY: {
             Expression* expr = &expressions.back();
+            std::cout << (uint)expr->get_type() << std::endl;
             merge(&instructions, expr->generate_push_instructions(builder));
             merge(&instructions, expr->generate_pop_instructions(builder));
         } break;
