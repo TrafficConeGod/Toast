@@ -2,14 +2,12 @@
 #include <algorithm>
 using namespace toast;
 
-Scope::Scope(ScopeType type, int stack_frame) {
+Scope::Scope(ScopeType type) {
     this->type = type;
-    this->stack_frame = stack_frame;
 }
 
-Scope::Scope(ScopeType type, int stack_frame, StateTypeHolder function_type) {
+Scope::Scope(ScopeType type, StateTypeHolder function_type) {
     this->type = type;
-    this->stack_frame = stack_frame;
     this->function_type.push_back(function_type);
 }
 
@@ -53,10 +51,6 @@ Var* Scope::get_var(std::string ident) {
 
 ScopeType Scope::get_type() {
     return type;
-}
-
-int Scope::get_frame() {
-    return stack_frame;
 }
 
 std::vector<Instruction> Scope::get_instructions() {

@@ -13,11 +13,10 @@ namespace toast {
             ScopeType type;
             std::vector<Var*> var_stack;
             std::map<std::string, Var*> var_map;
-            int stack_frame;
             std::vector<StateTypeHolder> function_type;
         public:
-            Scope(ScopeType type, int stack_frame);
-            Scope(ScopeType type, int stack_frame, StateTypeHolder function_type);
+            Scope(ScopeType type);
+            Scope(ScopeType type, StateTypeHolder function_type);
             ~Scope();
             void push(Var* var);
             std::vector<Var*> get_var_stack();
@@ -26,7 +25,6 @@ namespace toast {
             bool has_var(Var* var);
             Var* get_var(std::string ident);
             ScopeType get_type();
-            int get_frame();
             std::vector<Instruction> get_instructions();
             StateTypeHolder get_function_type();
     };

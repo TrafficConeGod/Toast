@@ -10,7 +10,7 @@
 using namespace toast;
 
 Builder::Builder(Script* script) {
-    Scope* global_scope = new Scope(ScopeType::GLOBAL, stack_frame);
+    Scope* global_scope = new Scope(ScopeType::GLOBAL);
     push_scope(global_scope);
     for (Statement statement : script->get_statements()) {
         merge(&instructions, statement.generate_instructions(this));
@@ -52,10 +52,6 @@ Var* Builder::get_var(std::string ident) {
     }
     std::cout << "Variable " << ident << " has not been declared";
     throw CompilerException();
-}
-
-int Builder::get_frame() {
-    return scope_stack.back()->get_frame();
 }
 
 void Builder::push_var(std::string ident, Var* var) {

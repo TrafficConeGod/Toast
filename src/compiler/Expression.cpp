@@ -301,7 +301,7 @@ std::vector<Instruction> Expression::generate_push_instructions(Builder* builder
             // builder->add_temp_offset();
             // instructions.push_back(Instruction(InstructionType::PUSH, get_type_holder(builder).get_args()));
             // instructions.push_back(Instruction(InstructionType::SET, get_move_args(builder)));
-            Scope* scope = new Scope(ScopeType::FUNC, builder->get_frame() + 1);
+            Scope* scope = new Scope(ScopeType::FUNC);
             builder->push_scope(scope);
             Statement sub_statement = statements.back();
             std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);

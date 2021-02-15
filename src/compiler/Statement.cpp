@@ -258,7 +258,7 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             } else if (type == StatementType::FUNCTION_CREATE) {
                 StateTypeHolder type_holder = type_expr.get_type_holder();
                 instructions.push_back(Instruction(InstructionType::FUNCTION, { var->get_key(), 0 }, { new State(type_holder, 0) }));
-                Scope* scope = new Scope(ScopeType::FUNC, 1, type_holder);
+                Scope* scope = new Scope(ScopeType::FUNC, type_holder);
                 builder->push_scope(scope);
                 Statement sub_statement = statements.back();
                 std::vector<Instruction> sub_instructions;
@@ -339,7 +339,7 @@ std::vector<Instruction> Statement::generate_instructions(Builder* builder) {
             instructions.push_back(Instruction(InstructionType::COMPARE, expr->get_args(builder), expr->get_states(builder)));
             merge(&instructions, expr->generate_pop_instructions(builder));
             instructions.push_back(Instruction(InstructionType::IF, {}));
-            Scope* scope = new Scope(ScopeType::BLOCK, 1);
+            Scope* scope = new Scope(ScopeType::BLOCK);
             builder->push_scope(scope);
             Statement sub_statement = statements.back();
             std::vector<Instruction> sub_instructions = sub_statement.generate_instructions(builder);
