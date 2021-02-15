@@ -28,6 +28,6 @@ namespace toast {
             void push_state(uint state_key);
             State* pop_state(uint state_key);
             State* get_state(uint state_key);
-            std::vector<State*> get_states(Instruction instruction);
+            std::vector<State*> get_states(Instruction* instruction);
     };
 }

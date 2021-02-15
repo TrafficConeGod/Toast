@@ -93,28 +93,31 @@ State* Runner::get_state(uint state_key) {
     return frame->get_state(state_key);
 }
 
-std::vector<State*> Runner::get_states(Instruction instruction) {
-    std::vector<State*> return_states;
-    std::vector<uint> args = instruction.get_args();
-    std::vector<State*> states = instruction.get_states();
-    for (int i = 0, j = 0; i < args.size(); i++) {
-        int arg = args[i];
-        if (arg == 0) {
-            return_states.push_back(states[j]);
-            j++;
-        } else {
-            return_states.push_back(get_state(arg));
+std::vector<State*> Runner::get_states(Instruction* instruction) {
+    if (instruction->get_state_cache().size() == 0) {
+        std::vector<State*> state_cache;
+        std::vector<uint> args = instruction->get_args();
+        std::vector<State*> states = instruction->get_states();
+        for (int i = 0, j = 0; i < args.size(); i++) {
+            int arg = args[i];
+            if (arg == 0) {
+                state_cache.push_back(states[j]);
+                j++;
+            } else {
+                state_cache.push_back(get_state(arg));
+            }
         }
+        instruction->set_state_cache(state_cache);
     }
-    return return_states;
+    return instruction->get_state_cache();
 }
 
 void Runner::handle_instruction() {
-    Instruction instruction = instructions[position];
-    InstructionType type = instruction.get_type();
-    std::vector<uint> args = instruction.get_args();
+    Instruction* instruction = &instructions[position];
+    InstructionType type = instruction->get_type();
+    std::vector<uint> args = instruction->get_args();
     #ifdef OUTPUT_RUNNER_STATUS
-    std::cout << instruction.make_human_readable();
+    std::cout << instruction->make_human_readable();
     #endif
     switch (type) {
         case InstructionType::PUSH: {

@@ -130,3 +130,11 @@ std::string Instruction::make_human_readable() {
 std::string Instruction::get_string() {
     return "";
 }
+
+std::vector<State*> Instruction::get_state_cache() {
+    return state_cache;
+}
+
+void Instruction::set_state_cache(std::vector<State*> state_cache) {
+    this->state_cache = state_cache;
+}
