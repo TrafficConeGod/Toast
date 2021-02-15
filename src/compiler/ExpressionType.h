@@ -21,6 +21,7 @@ namespace toast {
         OR,
         NOT,
         LENGTH,
-        IGNORE
+        LESS_THAN,
+        GREATER_THAN,
     };
 }

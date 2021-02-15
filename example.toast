@@ -15,13 +15,12 @@
 //     int k = 10
 // }
 
-int my_func(int c) {
-    int v = c
-    if (c != 10) {
-        c++
-        v = my_func(c)
+void count(int from, int max) {
+    int i = 0
+    while (i != max) {
+        i++
+        int v = i
     }
-    return v
 }
 
-int x = my_func(0)
+count(0, 20)
