@@ -1,6 +1,7 @@
 #include "Runner.h"
 #include "StateFunction.h"
 using namespace toast;
+// #define OUTPUT_RUNNER_STATUS
 
 Runner::Runner(std::vector<Instruction> instructions) {
     // set_frame(0, true);
@@ -76,12 +77,14 @@ void Runner::push_state(uint state_key) {
 State* Runner::pop_state(uint state_key) {
     Frame* frame = frames.back();
     State* state = frame->pop_state(state_key);
+    #ifdef OUTPUT_RUNNER_STATUS
     std::cout << "Popped state";
     if (!state->is_empty()) {
         std::cout << " of type " << (int)state->get_type().get_main_type();
         std::cout << " and value " << state->get_displayable_string();
     }
     std::cout << std::endl;
+    #endif
     return state;
 }
 
@@ -110,7 +113,9 @@ void Runner::handle_instruction() {
     Instruction instruction = instructions[position];
     InstructionType type = instruction.get_type();
     std::vector<uint> args = instruction.get_args();
+    #ifdef OUTPUT_RUNNER_STATUS
     std::cout << instruction.make_human_readable();
+    #endif
     switch (type) {
         case InstructionType::PUSH: {
             int state_key = args[0];
