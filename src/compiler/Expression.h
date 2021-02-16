@@ -41,6 +41,7 @@ namespace toast {
             StateTypeHolder get_type_holder(Builder* builder);
             void check_type(Builder* builder, Var* state);
             void check_type(Builder* builder, StateTypeHolder type);
+            StateTypeHolder check_array(Builder* builder, StateTypeHolder type);
             Var* get_var(Builder* builder);
             // bool can_be_quick_moved() {
             //     switch (type) {

@@ -74,6 +74,8 @@ Expression::Expression(std::deque<Token>* tokens) {
                         break;
                     }
                 }
+            } else {
+                tokens->pop_front();
             }
         } break;
         // !expression
@@ -421,6 +423,9 @@ StateTypeHolder Expression::get_type_holder(Builder* builder) {
             }
             return StateTypeHolder(StateType::FUNC, sub_types);
         }
+        case ExpressionType::ARRAY: {
+            return StateTypeHolder(StateType::ARRAY);
+        } break;
         default: {
             Expression expr = expressions.back();
             return expr.get_type_holder(builder);
@@ -441,6 +446,11 @@ void Expression::check_type(Builder* builder, StateTypeHolder type) {
         if (!type.equals(check_type)) {
             matches = false;
         }
+    } else if (this->type == ExpressionType::ARRAY) {
+        StateTypeHolder check_type = check_array(builder, type.get_sub_types()[0]);
+        if (!type.equals(check_type)) {
+            matches = false;
+        }
     } else {
         if (!type.equals(get_type_holder(builder))) {
             matches = false;
@@ -451,6 +461,21 @@ void Expression::check_type(Builder* builder, StateTypeHolder type) {
         std::cout << "Types are incompatible" << std::endl;
         throw CompilerException();
     }
+}
+
+StateTypeHolder Expression::check_array(Builder* builder, StateTypeHolder type) {
+    std::vector<StateTypeHolder> type_holder;
+    for (Expression expr : expressions) {
+        if (type_holder.size() != 0) {
+            expr.check_type(builder, type_holder.back().get_sub_types()[0]);
+        } else {
+            type_holder.push_back(StateTypeHolder(StateType::ARRAY, { expr.get_type_holder(builder) }));
+        }
+    }
+    if (type_holder.size() == 0) {
+        type_holder.push_back(StateTypeHolder(StateType::ARRAY, { type }));
+    }
+    return type_holder.back();
 }
 
 Var* Expression::get_var(Builder* builder) {
