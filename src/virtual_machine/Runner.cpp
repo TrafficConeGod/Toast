@@ -1,7 +1,7 @@
 #include "Runner.h"
 #include "StateFunction.h"
 using namespace toast;
-// #define OUTPUT_RUNNER_STATUS
+#define OUTPUT_RUNNER_STATUS
 
 Runner::Runner(std::vector<Instruction> instructions) {
     // set_frame(0, true);

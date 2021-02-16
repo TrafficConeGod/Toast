@@ -1,4 +1,5 @@
 #include "Expression.h"
+#include "../shared/StateArray.h"
 #include "Token.h"
 #include "TokenType.h"
 #include "StatementType.h"
@@ -371,6 +372,7 @@ std::vector<uint> Expression::get_args(Builder* builder) {
     switch (type) {
         case ExpressionType::INT:
         case ExpressionType::BOOL:
+        case ExpressionType::ARRAY:
             return { 0 };
         case ExpressionType::IDENTIFIER: {
             std::string ident = identifiers.back();
@@ -391,12 +393,17 @@ std::vector<uint> Expression::get_args(Builder* builder) {
 std::vector<State*> Expression::get_states(Builder* builder) {
     switch (type) {
         case ExpressionType::INT:
-            return { new State(StateType::INT, values.back()) };
+            return { new State(StateTypeHolder(StateType::INT), values.back()) };
         case ExpressionType::BOOL:
-            return { new State(StateType::BOOL, values.back()) };
-        default:
-            return {};
+            return { new State(StateTypeHolder(StateType::BOOL), values.back()) };
+        case ExpressionType::ARRAY:
+            StateArray* state_array = new StateArray();
+            for (int i = 0; i < expressions.size(); i++) {
+                state_array->push_state((&expressions[i])->get_states(builder)[0]);
+            }
+            return { new State(get_type_holder(builder), state_array) };
     }
+    return {};
 }
 
 StateTypeHolder Expression::get_type_holder(Builder* builder) {

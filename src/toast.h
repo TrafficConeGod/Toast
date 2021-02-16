@@ -6,8 +6,8 @@
 #include "shared/StateType.h"
 #include "shared/StateTypeHolder.h"
 #include "shared/State.h"
+#include "shared/StateArray.h"
 // Compiler
 #include "compiler/t_cmp.h"
 // Virtual Machine
 #include "virtual_machine/t_vm.h"
-#include "virtual_machine/StateArray.h"

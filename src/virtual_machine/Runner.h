@@ -1,7 +1,7 @@
 #pragma once
 #include "Frame.h"
 #include "../shared/State.h"
-#include "StateArray.h"
+#include "../shared/StateArray.h"
 #include "../shared/Instruction.h"
 #include "../shared/StateTypeHolder.h"
 #include <iostream>
